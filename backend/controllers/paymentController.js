@@ -11,8 +11,8 @@ exports.createUpiOrder = async (req, res) => {
     const { amount } = req.body;
     const numAmount = Number(amount);
 
-    if (!numAmount || numAmount < 100) {
-      return res.status(400).json({ message: 'Minimum recharge amount is ₹100' });
+    if (!numAmount || numAmount < 10) {
+      return res.status(400).json({ message: 'Minimum recharge amount is ₹10' });
     }
 
     // Generate unique dynamic Order ID & Transaction Reference

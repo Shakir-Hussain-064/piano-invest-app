@@ -55,7 +55,7 @@ export default function WalletPage() {
   // ── Step 1: Generate Dynamic UPI QR & Intent ──────────────────
   const handleGenerateUpi = async () => {
     const amt = Number(rechargeAmount);
-    if (!amt || amt < 100) { showMsg('Minimum recharge amount is ₹100', 'error'); return; }
+    if (!amt || amt < 10) { showMsg('Minimum recharge amount is ₹10', 'error'); return; }
 
     setPaying(true);
     try {
@@ -127,7 +127,7 @@ export default function WalletPage() {
     }
   };
 
-  const quickAmounts = [500, 1000, 2500, 5000, 10000];
+  const quickAmounts = [10, 500, 1000, 2500, 5000, 10000];
   const txIcon  = (t) => ({ credit: '💳', earning: '☀️', debit: '🏦' }[t] || '💳');
   const txBg    = (t) => ({ credit: 'bg-blue-50 border border-blue-200 text-blue-700', earning: 'bg-emerald-50 border border-emerald-200 text-emerald-700', debit: 'bg-rose-50 border border-rose-200 text-rose-700' }[t]);
   const txColor = (t) => (t === 'debit' ? 'text-rose-600' : 'text-emerald-600');
@@ -277,7 +277,7 @@ export default function WalletPage() {
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
                     <input type="number" value={rechargeAmount} onChange={(e) => setRechargeAmount(e.target.value)}
-                      placeholder="Enter amount (min ₹100)"
+                      placeholder="Enter amount (min ₹10)"
                       className="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 transition shadow-sm font-semibold" />
                   </div>
                 </div>
