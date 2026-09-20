@@ -2,10 +2,11 @@ const crypto = require('crypto');
 const Wallet = require('../models/Wallet');
 const PaymentOrder = require('../models/PaymentOrder');
 
-const UPI_ID = process.env.UPI_ID || '79062276slic@slc';
+const BHARATPE_VPA = process.env.UPI_ID || 'BHARATPE2V0A0L7H9O51145@unitype';
+const BHARATPE_BPSIGN = 'UndITHhpZzdKaVZTbS9oMllneEJzcHY1UWlSNDBVbEVZL1lwUFZrSXJobz0=';
 const BRAND_NAME = process.env.BRAND_NAME || 'Solar Wealth';
 
-// 1. Create a dynamic UPI payment request
+// 1. Create a BharatPe merchant payment request
 exports.createUpiOrder = async (req, res) => {
   try {
     const { amount } = req.body;
@@ -15,26 +16,19 @@ exports.createUpiOrder = async (req, res) => {
       return res.status(400).json({ message: 'Minimum recharge amount is ₹10' });
     }
 
-    // Generate unique dynamic Order ID
+    // Generate unique Order ID
     const orderId = 'SW' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
-
-    // Construct universal NPCI compliant UPI URL
-    // NOTE: 'tr' parameter is strictly for merchant accounts; passing 'tr' for P2P causes PhonePe/GPay to throw "Technical Glitch"
-    const encodedBrand = encodeURIComponent(BRAND_NAME);
-    const encodedNote = encodeURIComponent('SolarWealth');
     const amountStr = numAmount % 1 === 0 ? numAmount.toString() : numAmount.toFixed(2);
 
-    const upiUrl = `upi://pay?pa=${UPI_ID}&pn=${encodedBrand}&am=${amountStr}&cu=INR&tn=${encodedNote}`;
-    const phonepeUrl = `phonepe://pay?pa=${UPI_ID}&pn=${encodedBrand}&am=${amountStr}&cu=INR&tn=${encodedNote}`;
-    const gpayUrl = `tez://upi/pay?pa=${UPI_ID}&pn=${encodedBrand}&am=${amountStr}&cu=INR&tn=${encodedNote}`;
-    const paytmUrl = `paytmmp://pay?pa=${UPI_ID}&pn=${encodedBrand}&am=${amountStr}&cu=INR&tn=${encodedNote}`;
+    // Official BharatPe Merchant UPI link with amount
+    const upiUrl = `upi://pay?pa=${BHARATPE_VPA}&pn=${encodeURIComponent(BRAND_NAME)}&am=${amountStr}&cu=INR&bpsign=${encodeURIComponent(BHARATPE_BPSIGN)}`;
 
     // Save order in database
     await PaymentOrder.create({
       userId: req.user._id,
       orderId,
       amount: numAmount,
-      upiId: UPI_ID,
+      upiId: BHARATPE_VPA,
       brandName: BRAND_NAME,
       status: 'pending',
     });
@@ -43,16 +37,12 @@ exports.createUpiOrder = async (req, res) => {
       success: true,
       orderId,
       amount: numAmount,
-      upiId: UPI_ID,
-      brandName: BRAND_NAME,
       upiUrl,
-      phonepeUrl,
-      gpayUrl,
-      paytmUrl,
+      qrImage: '/bharatpe_card.png',
     });
   } catch (error) {
-    console.error('Create UPI Order error:', error);
-    res.status(500).json({ message: 'Could not create UPI order: ' + error.message });
+    console.error('Create BharatPe Order error:', error);
+    res.status(500).json({ message: 'Could not create payment order: ' + error.message });
   }
 };
 
