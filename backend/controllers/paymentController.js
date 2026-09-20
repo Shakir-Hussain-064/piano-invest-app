@@ -15,19 +15,19 @@ exports.createUpiOrder = async (req, res) => {
       return res.status(400).json({ message: 'Minimum recharge amount is ₹10' });
     }
 
-    // Generate unique dynamic Order ID & Transaction Reference
+    // Generate unique dynamic Order ID
     const orderId = 'SW' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
 
-    // Construct the standard NPCI compliant UPI payment URL
-    // pa: Payee UPI ID
-    // pn: Payee Name (Brand Name: Solar Wealth)
-    // am: Amount
-    // cu: Currency (INR)
-    // tr: Transaction Reference ID (dynamic per order)
-    // tn: Transaction Note
+    // Construct universal NPCI compliant UPI URL
+    // NOTE: 'tr' parameter is strictly for merchant accounts; passing 'tr' for P2P causes PhonePe/GPay to throw "Technical Glitch"
     const encodedBrand = encodeURIComponent(BRAND_NAME);
-    const note = encodeURIComponent(`Recharge ${orderId}`);
-    const upiUrl = `upi://pay?pa=${UPI_ID}&pn=${encodedBrand}&am=${numAmount.toFixed(2)}&cu=INR&tr=${orderId}&tn=${note}`;
+    const encodedNote = encodeURIComponent('SolarWealth');
+    const amountStr = numAmount % 1 === 0 ? numAmount.toString() : numAmount.toFixed(2);
+
+    const upiUrl = `upi://pay?pa=${UPI_ID}&pn=${encodedBrand}&am=${amountStr}&cu=INR&tn=${encodedNote}`;
+    const phonepeUrl = `phonepe://pay?pa=${UPI_ID}&pn=${encodedBrand}&am=${amountStr}&cu=INR&tn=${encodedNote}`;
+    const gpayUrl = `tez://upi/pay?pa=${UPI_ID}&pn=${encodedBrand}&am=${amountStr}&cu=INR&tn=${encodedNote}`;
+    const paytmUrl = `paytmmp://pay?pa=${UPI_ID}&pn=${encodedBrand}&am=${amountStr}&cu=INR&tn=${encodedNote}`;
 
     // Save order in database
     await PaymentOrder.create({
@@ -46,6 +46,9 @@ exports.createUpiOrder = async (req, res) => {
       upiId: UPI_ID,
       brandName: BRAND_NAME,
       upiUrl,
+      phonepeUrl,
+      gpayUrl,
+      paytmUrl,
     });
   } catch (error) {
     console.error('Create UPI Order error:', error);

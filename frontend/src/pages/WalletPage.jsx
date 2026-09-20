@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import BottomNav from '../components/BottomNav';
 import { useAuth } from '../context/AuthContext';
 import API from '../api/axios';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function WalletPage() {
   const { user }                            = useAuth();
@@ -310,42 +311,77 @@ export default function WalletPage() {
                   </button>
                 </div>
 
-                {/* Dynamic QR Code Image */}
-                <div className="bg-white p-3 rounded-2xl inline-block border-2 border-amber-300 shadow-sm">
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(activeOrder.upiUrl)}`}
-                    alt="Solar Wealth Dynamic UPI QR"
-                    className="w-48 h-48 mx-auto rounded-lg"
-                  />
-                  <p className="text-[11px] font-bold text-slate-700 mt-1.5 flex items-center justify-center gap-1">
+                {/* Dynamic QR Code (Native SVG, Zero latency, 100% reliable) */}
+                <div className="bg-white p-4 rounded-2xl inline-block border-2 border-amber-300 shadow-sm">
+                  <div className="flex justify-center items-center p-2 bg-white rounded-xl shadow-inner">
+                    <QRCodeSVG
+                      value={activeOrder.upiUrl}
+                      size={200}
+                      level="M"
+                      includeMargin={false}
+                      className="mx-auto"
+                    />
+                  </div>
+                  <p className="text-xs font-bold text-slate-700 mt-2.5 flex items-center justify-center gap-1">
                     <span>⚡ Pay to:</span> <span className="text-amber-800 font-black">{activeOrder.brandName}</span>
                   </p>
                 </div>
 
-                {/* One-Click UPI Intent Button (Mobile) */}
-                <div>
-                  <a
-                    href={activeOrder.upiUrl}
-                    className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 text-white font-extrabold py-3.5 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-sm"
-                  >
-                    <span>📲</span> Open GPay / PhonePe / Paytm
-                  </a>
-                  <p className="text-[11px] text-slate-400 mt-1">Tap button above or scan QR from another phone</p>
+                {/* Direct UPI App Buttons (Mobile) */}
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    {activeOrder.phonepeUrl && (
+                      <a
+                        href={activeOrder.phonepeUrl}
+                        className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-3 rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-1.5"
+                      >
+                        <span>🟣</span> PhonePe
+                      </a>
+                    )}
+                    {activeOrder.gpayUrl && (
+                      <a
+                        href={activeOrder.gpayUrl}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-3 rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-1.5"
+                      >
+                        <span>🔵</span> Google Pay
+                      </a>
+                    )}
+                    {activeOrder.paytmUrl && (
+                      <a
+                        href={activeOrder.paytmUrl}
+                        className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-2.5 px-3 rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-1.5"
+                      >
+                        <span>🔷</span> Paytm
+                      </a>
+                    )}
+                    <a
+                      href={activeOrder.upiUrl}
+                      className="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-3 rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-1.5"
+                    >
+                      <span>📱</span> Other UPI App
+                    </a>
+                  </div>
+                  <p className="text-[11px] text-slate-400">Mobile user? Tap your preferred app button above</p>
                 </div>
 
-                {/* Manual UPI ID copy */}
-                <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-200 flex items-center justify-between text-xs">
-                  <div className="text-left">
-                    <span className="text-[10px] text-slate-400 font-bold block">UPI ID:</span>
-                    <span className="text-slate-800 font-mono font-bold">{activeOrder.upiId}</span>
+                {/* Manual UPI ID copy & Troubleshooting guide */}
+                <div className="bg-amber-50/70 rounded-2xl p-3 border border-amber-200/80 space-y-2 text-left">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Official UPI ID</span>
+                      <span className="text-slate-900 font-mono font-black text-sm select-all">{activeOrder.upiId}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={copyUpiId}
+                      className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-1.5 rounded-lg transition text-xs shadow-sm"
+                    >
+                      {copiedUpi ? '✓ Copied!' : '📋 Copy UPI ID'}
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={copyUpiId}
-                    className="bg-amber-100 text-amber-800 font-bold px-3 py-1.5 rounded-lg hover:bg-amber-200 transition text-xs"
-                  >
-                    {copiedUpi ? '✓ Copied' : 'Copy'}
-                  </button>
+                  <p className="text-[11px] text-amber-950 bg-amber-100/70 p-2 rounded-lg font-medium leading-relaxed">
+                    💡 <strong>Agar QR scan me bank glitch aaye:</strong> UPI ID copy karein, kisi bhi UPI app me <em>"To UPI ID"</em> me paste karke ₹{activeOrder.amount} send karein, aur receipt ka 12-digit UTR neeche enter karein.
+                  </p>
                 </div>
 
                 {/* Step 3: Enter UTR form */}
