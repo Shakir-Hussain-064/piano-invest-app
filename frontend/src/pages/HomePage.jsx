@@ -19,7 +19,7 @@ const stats = [
 ];
 
 const steps = [
-  { step: '01', title: 'Recharge Energy Wallet', desc: 'Add investment capital securely via UPI, QR, or Cards with Razorpay.', icon: '💳', color: '#D97706', bg: '#FEF3C7' },
+  { step: '01', title: 'Recharge Energy Wallet', desc: 'Add investment capital securely via GPay, PhonePe, Paytm, or UPI QR.', icon: '💳', color: '#D97706', bg: '#FEF3C7' },
   { step: '02', title: 'Select Solar Plan',      desc: 'Choose your solar capacity from ₹500 (Solar Spark) to ₹25,000 (Mega Plant).', icon: '☀️', color: '#EA580C', bg: '#FFEDD5' },
   { step: '03', title: 'Daily Power Earnings',   desc: 'Your solar units produce power daily and credit returns every midnight.', icon: '⚡', color: '#059669', bg: '#D1FAE5' },
   { step: '04', title: 'Withdraw 3× Returns',    desc: 'Cash out your accumulated green energy profits into your Bank or UPI.', icon: '🏦', color: '#2563EB', bg: '#DBEAFE' },
