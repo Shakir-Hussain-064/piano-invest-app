@@ -90,7 +90,7 @@ export default function ProfilePage() {
           { icon: '🔔', label: 'Notifications', action: () => {} },
           { icon: '🛡️', label: 'Security Settings', action: () => {} },
           { icon: '📞', label: 'Customer Support', action: () => {} },
-          { icon: 'ℹ️', label: 'About PianoWealth', action: () => navigate('/home') },
+          { icon: 'ℹ️', label: 'About SolarWealth', action: () => navigate('/home') },
         ].map((item) => (
           <button
             key={item.label}

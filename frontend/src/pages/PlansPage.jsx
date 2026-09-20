@@ -50,16 +50,16 @@ export default function PlansPage() {
   return (
     <div className="min-h-screen bg-dark pb-24">
       {/* Header */}
-      <div className="bg-card border-b border-accent/30 px-5 py-4 flex items-center justify-between">
+      <div className="bg-card border-b border-yellow-500/20 px-5 py-4 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-1.5">
-            <span>🎹</span> Piano Plans
+            <span>☀️</span> Solar Plans
           </h1>
-          <p className="text-gray-400 text-xs mt-0.5">Tune your 2× daily melody profits</p>
+          <p className="text-yellow-400 font-semibold text-xs mt-0.5">3× Guaranteed Returns (300% ROI)</p>
         </div>
         <div className="text-right">
           <p className="text-gray-400 text-xs">Wallet Balance</p>
-          <p className="text-primary font-bold text-lg">₹{wallet?.balance?.toLocaleString() || '0'}</p>
+          <p className="text-yellow-400 font-extrabold text-lg">₹{wallet?.balance?.toLocaleString() || '0'}</p>
         </div>
       </div>
 
@@ -75,22 +75,22 @@ export default function PlansPage() {
       )}
 
       {/* Tab Switcher */}
-      <div className="mx-4 mt-4 flex bg-card rounded-xl p-1 border border-accent/30">
+      <div className="mx-4 mt-4 flex bg-card rounded-xl p-1 border border-yellow-500/20">
         <button
           onClick={() => setActiveTab('standard')}
           className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all ${
-            activeTab === 'standard' ? 'bg-primary text-white shadow-md' : 'text-gray-400'
+            activeTab === 'standard' ? 'bg-gradient-to-r from-yellow-500 to-amber-600 text-black shadow-md' : 'text-gray-400'
           }`}
         >
-          🎹 Standard
+          ☀️ Standard 3×
         </button>
         <button
           onClick={() => setActiveTab('vip')}
           className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all ${
-            activeTab === 'vip' ? 'bg-yellow-500 text-black shadow-md' : 'text-gray-400'
+            activeTab === 'vip' ? 'bg-yellow-400 text-black shadow-md' : 'text-gray-400'
           }`}
         >
-          👑 VIP Piano
+          ⚡ VIP Mega
         </button>
         <button
           onClick={() => setActiveTab('my')}
@@ -98,7 +98,7 @@ export default function PlansPage() {
             activeTab === 'my' ? 'bg-accent text-white shadow-md' : 'text-gray-400'
           }`}
         >
-          🎼 My Plans
+          🔋 My Units
         </button>
       </div>
 

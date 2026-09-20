@@ -37,12 +37,12 @@ export default function SignupPage() {
 
       {/* Logo */}
       <div className="text-center mb-8">
-        <div className="w-16 h-16 rounded-2xl mx-auto mb-3 flex items-center justify-center text-3xl"
-             style={{ background: 'linear-gradient(135deg,#111 0%,#24243e 100%)', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 8px 24px rgba(108,99,255,.4)' }}>
-          🎹
+        <div className="w-16 h-16 rounded-2xl mx-auto mb-3 flex items-center justify-center text-3xl shadow-xl"
+             style={{ background: 'linear-gradient(135deg,#f59e0b 0%,#ea580c 100%)', border: '1px solid rgba(254,240,138,0.4)', boxShadow: '0 8px 24px rgba(234,179,8,.4)' }}>
+          ☀️
         </div>
-        <h1 className="text-2xl font-extrabold text-white">PianoWealth</h1>
-        <p className="text-gray-400 text-xs mt-1">Play the keys to daily financial freedom</p>
+        <h1 className="text-2xl font-extrabold text-white">SolarWealth</h1>
+        <p className="text-gray-400 text-xs mt-1">Invest in green energy & earn 3× daily returns</p>
       </div>
 
       {/* Card */}

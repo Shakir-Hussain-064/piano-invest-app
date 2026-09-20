@@ -2,21 +2,21 @@ const ActivePlan = require('../models/ActivePlan');
 const Wallet = require('../models/Wallet');
 
 const PLANS = [
-  // ── Standard Piano Plans (2x return in 20 days) ────────────────────────
-  { id: 'starter',  name: '🎹 Piano Prelude',  investedAmount: 500,   dailyEarn: 50,   totalReturn: 1000,  totalDays: 20, isVip: false },
-  { id: 'basic',    name: '🎹 Piano Sonata',   investedAmount: 1000,  dailyEarn: 100,  totalReturn: 2000,  totalDays: 20, isVip: false },
-  { id: 'silver',   name: '🎹 Piano Symphony', investedAmount: 2500,  dailyEarn: 250,  totalReturn: 5000,  totalDays: 20, isVip: false },
-  { id: 'gold',     name: '🎹 Piano Concerto', investedAmount: 5000,  dailyEarn: 500,  totalReturn: 10000, totalDays: 20, isVip: false },
-  { id: 'platinum', name: '🎹 Piano Maestro',  investedAmount: 10000, dailyEarn: 1000, totalReturn: 20000, totalDays: 20, isVip: false },
-  { id: 'diamond',  name: '🎹 Piano Virtuoso', investedAmount: 20000, dailyEarn: 2000, totalReturn: 40000, totalDays: 20, isVip: false },
-  { id: 'elite',    name: '🎹 Grand Royal Piano', investedAmount: 25000, dailyEarn: 2500, totalReturn: 50000, totalDays: 20, isVip: false },
+  // ── Standard Solar Plans (3x return in 30 days) ────────────────────────
+  { id: 'starter',  name: '☀️ Solar Spark 500',      investedAmount: 500,   dailyEarn: 50,   totalReturn: 1500,  totalDays: 30, isVip: false },
+  { id: 'basic',    name: '☀️ Solar Ray 1000',        investedAmount: 1000,  dailyEarn: 100,  totalReturn: 3000,  totalDays: 30, isVip: false },
+  { id: 'silver',   name: '☀️ Solar Panel 2500',      investedAmount: 2500,  dailyEarn: 250,  totalReturn: 7500,  totalDays: 30, isVip: false },
+  { id: 'gold',     name: '☀️ Solar Grid 5000',       investedAmount: 5000,  dailyEarn: 500,  totalReturn: 15000, totalDays: 30, isVip: false },
+  { id: 'platinum', name: '☀️ Solar Station 10000',   investedAmount: 10000, dailyEarn: 1000, totalReturn: 30000, totalDays: 30, isVip: false },
+  { id: 'diamond',  name: '☀️ Solar Park 20000',      investedAmount: 20000, dailyEarn: 2000, totalReturn: 60000, totalDays: 30, isVip: false },
+  { id: 'elite',    name: '☀️ Mega Solar Plant 25000',investedAmount: 25000, dailyEarn: 2500, totalReturn: 75000, totalDays: 30, isVip: false },
 
-  // ── VIP Piano Plans (higher daily return, more profit) ──────────────────
-  { id: 'vip-silver',   name: '👑 VIP Piano Symphony', investedAmount: 2500,  dailyEarn: 350,  totalReturn: 7000,  totalDays: 20, isVip: true },
-  { id: 'vip-gold',     name: '👑 VIP Piano Concerto', investedAmount: 5000,  dailyEarn: 750,  totalReturn: 15000, totalDays: 20, isVip: true },
-  { id: 'vip-platinum', name: '👑 VIP Piano Maestro',  investedAmount: 10000, dailyEarn: 1500, totalReturn: 30000, totalDays: 20, isVip: true },
-  { id: 'vip-diamond',  name: '👑 VIP Piano Virtuoso', investedAmount: 20000, dailyEarn: 3000, totalReturn: 60000, totalDays: 20, isVip: true },
-  { id: 'vip-elite',    name: '👑 VIP Grand Royal Piano', investedAmount: 25000, dailyEarn: 4000, totalReturn: 80000, totalDays: 20, isVip: true },
+  // ── VIP Solar Mega Plans (Accelerated High Yield) ──────────────────────
+  { id: 'vip-silver',   name: '⚡ VIP Solar SuperGrid',   investedAmount: 2500,  dailyEarn: 350,  totalReturn: 10500, totalDays: 30, isVip: true },
+  { id: 'vip-gold',     name: '⚡ VIP Solar UltraPlant',  investedAmount: 5000,  dailyEarn: 750,  totalReturn: 22500, totalDays: 30, isVip: true },
+  { id: 'vip-platinum', name: '⚡ VIP Solar PowerHub',    investedAmount: 10000, dailyEarn: 1600, totalReturn: 48000, totalDays: 30, isVip: true },
+  { id: 'vip-diamond',  name: '⚡ VIP Solar InfinityGig', investedAmount: 20000, dailyEarn: 3500, totalReturn: 105000, totalDays: 30, isVip: true },
+  { id: 'vip-elite',    name: '⚡ VIP Gigawatt SolarEmpire', investedAmount: 25000, dailyEarn: 4500, totalReturn: 135000, totalDays: 30, isVip: true },
 ];
 
 exports.getPlans = (req, res) => {

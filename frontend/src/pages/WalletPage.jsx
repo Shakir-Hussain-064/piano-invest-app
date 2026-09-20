@@ -74,8 +74,8 @@ export default function WalletPage() {
         key:         order.keyId || import.meta.env.VITE_RAZORPAY_KEY,
         amount:      order.amount,
         currency:    order.currency,
-        name:        'PianoWealth',
-        description: 'Wallet Tuning & Recharge',
+        name:        'SolarWealth',
+        description: 'Solar Energy Wallet Recharge',
         order_id:    order.orderId,
         handler: async (response) => {
           try {
