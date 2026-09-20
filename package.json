@@ -1,0 +1,13 @@
+{
+  "name": "pianowealth-monorepo",
+  "version": "1.0.0",
+  "description": "PianoWealth Investment App",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build && cd ../backend && npm install",
+    "start": "cd backend && node server.js",
+    "dev": "cd backend && npm run dev"
+  },
+  "keywords": ["investment", "pianowealth"],
+  "author": "",
+  "license": "ISC"
+}
