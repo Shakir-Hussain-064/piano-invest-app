@@ -19,10 +19,10 @@ const stats = [
 ];
 
 const steps = [
-  { step: '01', title: 'Recharge Energy Wallet', desc: 'Add investment capital securely via UPI, QR, or Cards with Razorpay.', icon: '💳', color: '#EAB308' },
-  { step: '02', title: 'Select Solar Plan',      desc: 'Choose your solar capacity from ₹500 (Solar Spark) to ₹25,000 (Mega Plant).', icon: '☀️', color: '#F97316' },
-  { step: '03', title: 'Daily Power Earnings',   desc: 'Your solar units produce power daily and credit returns every midnight.', icon: '⚡', color: '#10B981' },
-  { step: '04', title: 'Withdraw 3× Returns',    desc: 'Cash out your accumulated green energy profits into your Bank or UPI.', icon: '🏦', color: '#3B82F6' },
+  { step: '01', title: 'Recharge Energy Wallet', desc: 'Add investment capital securely via UPI, QR, or Cards with Razorpay.', icon: '💳', color: '#D97706', bg: '#FEF3C7' },
+  { step: '02', title: 'Select Solar Plan',      desc: 'Choose your solar capacity from ₹500 (Solar Spark) to ₹25,000 (Mega Plant).', icon: '☀️', color: '#EA580C', bg: '#FFEDD5' },
+  { step: '03', title: 'Daily Power Earnings',   desc: 'Your solar units produce power daily and credit returns every midnight.', icon: '⚡', color: '#059669', bg: '#D1FAE5' },
+  { step: '04', title: 'Withdraw 3× Returns',    desc: 'Cash out your accumulated green energy profits into your Bank or UPI.', icon: '🏦', color: '#2563EB', bg: '#DBEAFE' },
 ];
 
 export default function HomePage() {
@@ -30,43 +30,43 @@ export default function HomePage() {
   const navigate   = useNavigate();
 
   return (
-    <div className="min-h-screen bg-dark pb-28 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 pb-28 overflow-x-hidden text-slate-800">
 
       {/* ── Hero ─────────────────────────────────────────── */}
       <div
-        className="relative px-5 pt-12 pb-14 text-center overflow-hidden"
-        style={{ background: 'linear-gradient(160deg,#042f2e 0%,#0f172a 50%,#ca8a0422 100%)' }}
+        className="relative px-5 pt-12 pb-14 text-center overflow-hidden border-b border-amber-200/50"
+        style={{ background: 'linear-gradient(180deg, #FEF3C7 0%, #FFFBEB 60%, #F8FAFC 100%)' }}
       >
-        {/* Background ambient lights */}
+        {/* Soft sun rays glow */}
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full pointer-events-none"
-             style={{ background: 'radial-gradient(circle,rgba(234,179,8,.25),transparent 70%)', transform: 'translate(30%,-30%)' }} />
+             style={{ background: 'radial-gradient(circle, rgba(245, 158, 11, 0.18), transparent 70%)', transform: 'translate(20%, -20%)' }} />
         <div className="absolute bottom-0 left-0 w-52 h-52 rounded-full pointer-events-none"
-             style={{ background: 'radial-gradient(circle,rgba(249,115,22,.15),transparent 70%)', transform: 'translate(-30%,30%)' }} />
+             style={{ background: 'radial-gradient(circle, rgba(249, 115, 22, 0.12), transparent 70%)', transform: 'translate(-20%, 20%)' }} />
 
         <div className="relative z-10">
           {/* Solar Icon Badge */}
           <div
-            className="w-20 h-20 rounded-3xl mx-auto mb-3 flex items-center justify-center text-4xl shadow-2xl"
-            style={{ background: 'linear-gradient(135deg,#f59e0b 0%,#ea580c 100%)', border: '2px solid rgba(254,240,138,0.3)', boxShadow: '0 10px 30px rgba(234,179,8,.4)' }}
+            className="w-20 h-20 rounded-3xl mx-auto mb-3 flex items-center justify-center text-4xl shadow-xl border border-amber-200"
+            style={{ background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' }}
           >
             ☀️
           </div>
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-[11px] font-bold text-yellow-400 mb-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 border border-amber-300 text-[11px] font-bold text-amber-800 mb-2 shadow-sm">
             <span>⚡</span> RENEWABLE SOLAR ENERGY · 3× GUARANTEED RETURNS
           </div>
 
-          <h1 className="text-4xl font-black text-white tracking-tight">SolarWealth</h1>
-          <p className="text-gray-300 text-sm mt-1.5">
-            Welcome, Solar Partner <span className="font-bold text-yellow-400">{user?.name || user?.email?.split('@')[0]}</span>!
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">SolarWealth</h1>
+          <p className="text-slate-600 text-sm mt-1.5">
+            Welcome, Solar Partner <span className="font-bold text-amber-700">{user?.name || user?.email?.split('@')[0]}</span>!
           </p>
-          <p className="text-gray-400 text-xs mt-1 max-w-xs mx-auto">
+          <p className="text-slate-500 text-xs mt-1 max-w-xs mx-auto">
             Harness the power of the sun. Invest in solar grids & earn guaranteed 300% daily profit returns.
           </p>
 
           <button
             onClick={() => navigate('/plans')}
-            className="mt-6 inline-flex items-center gap-2 bg-gradient-to-r from-yellow-500 via-orange-500 to-amber-600 text-black font-extrabold text-sm px-7 py-3.5 rounded-2xl shadow-xl shadow-yellow-500/30 hover:scale-105 transition-all"
+            className="mt-6 inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white font-extrabold text-sm px-7 py-3.5 rounded-2xl shadow-lg shadow-orange-500/25 hover:shadow-xl hover:scale-105 transition-all"
           >
             <span>☀️</span> Explore Solar 3× Plans
           </button>
@@ -76,22 +76,16 @@ export default function HomePage() {
       {/* ── Solar Energy Power Cells Banner ─────────────── */}
       <div className="mx-4 -mt-5 relative z-10">
         <div
-          className="rounded-2xl p-2.5 flex justify-between items-center shadow-2xl border border-yellow-500/20"
-          style={{ background: 'linear-gradient(180deg,#0f172a 0%,#020617 100%)' }}
+          className="rounded-2xl p-2.5 flex justify-between items-center shadow-lg border border-amber-200 bg-white"
         >
           {['500W', '1kW', '2.5kW', '5kW', '10kW', '20kW', '25kW'].map((cell, i) => (
             <div
               key={i}
               onClick={() => navigate('/plans')}
-              className="flex-1 mx-0.5 py-3 rounded-lg text-center cursor-pointer transition-all hover:bg-yellow-500/20 active:scale-95"
-              style={{
-                background: 'linear-gradient(180deg,#1e293b 0%,#0f172a 100%)',
-                border: '1px solid rgba(234,179,8,0.2)',
-                boxShadow: 'inset 0 -2px 0 rgba(0,0,0,0.5)'
-              }}
+              className="flex-1 mx-0.5 py-3 rounded-xl text-center cursor-pointer transition-all hover:bg-amber-50 active:scale-95 border border-slate-100 bg-slate-50"
             >
-              <span className="text-[10px] font-black text-yellow-400 block">{cell}</span>
-              <p className="text-[8px] text-emerald-400 font-bold">3× ROI</p>
+              <span className="text-[10px] font-black text-amber-700 block">{cell}</span>
+              <p className="text-[8px] text-emerald-600 font-bold">3× ROI</p>
             </div>
           ))}
         </div>
@@ -100,13 +94,12 @@ export default function HomePage() {
       {/* ── Floating Stats Card ────────────────────────── */}
       <div className="mx-4 mt-4">
         <div
-          className="rounded-2xl p-4 grid grid-cols-4 divide-x divide-white/5"
-          style={{ background: 'rgba(22,33,62,0.95)', border: '1px solid rgba(234,179,8,.2)', backdropFilter: 'blur(12px)', boxShadow: '0 8px 32px rgba(0,0,0,.4)' }}
+          className="rounded-2xl p-4 grid grid-cols-4 divide-x divide-slate-100 bg-white border border-slate-200/80 shadow-sm"
         >
           {stats.map((s) => (
             <div key={s.label} className="text-center px-1">
-              <p className="text-yellow-400 font-extrabold text-sm">{s.value}</p>
-              <p className="text-gray-400 text-[10px] mt-0.5">{s.label}</p>
+              <p className="text-amber-600 font-black text-sm">{s.value}</p>
+              <p className="text-slate-400 text-[10px] font-semibold mt-0.5">{s.label}</p>
             </div>
           ))}
         </div>
@@ -115,31 +108,31 @@ export default function HomePage() {
       {/* ── About SolarWealth ──────────────────────────── */}
       <div className="mx-4 mt-6">
         <div
-          className="rounded-2xl p-5 border border-yellow-500/20"
-          style={{ background: 'linear-gradient(135deg,rgba(15,23,42,1) 0%,rgba(4,47,46,0.6) 100%)' }}
+          className="rounded-2xl p-5 border border-amber-200/80 bg-white shadow-sm"
+          style={{ background: 'linear-gradient(135deg, #FFFFFF 0%, #FFFBEB 100%)' }}
         >
           <div className="flex items-center gap-2 mb-2">
             <span className="text-2xl">🌍</span>
-            <h2 className="text-lg font-bold text-white">About SolarWealth</h2>
+            <h2 className="text-lg font-bold text-slate-900">About SolarWealth</h2>
           </div>
-          <p className="text-gray-300 text-xs leading-relaxed">
+          <p className="text-slate-600 text-xs leading-relaxed">
             SolarWealth is India's pioneer in community-funded solar energy development. We channel everyday retail investments into industrial solar rooftops, utility-scale photovoltaic panels, and clean energy storage grids.
           </p>
-          <p className="text-gray-300 text-xs leading-relaxed mt-2">
-            Power generated by your funded solar panels is sold back to national grids and commercial hubs, delivering guaranteed <strong>3× (300%) Total Returns</strong> (e.g., ₹500 investment returns ₹1,500) credited directly to your wallet every single night!
+          <p className="text-slate-600 text-xs leading-relaxed mt-2">
+            Power generated by your funded solar panels is sold back to national grids and commercial hubs, delivering guaranteed <strong className="text-amber-700">3× (300%) Total Returns</strong> (e.g., ₹500 investment returns ₹1,500) credited directly to your wallet every single night!
           </p>
-          <div className="mt-3 grid grid-cols-2 gap-2 pt-2 border-t border-white/10 text-[11px] text-gray-300">
+          <div className="mt-3 grid grid-cols-2 gap-2 pt-2.5 border-t border-amber-100 text-[11px] text-slate-700">
             <div className="flex items-center gap-1.5">
-              <span className="text-yellow-400 font-bold">✓</span> 300% Guaranteed Payouts
+              <span className="text-amber-600 font-bold">✓</span> 300% Guaranteed Payouts
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-yellow-400 font-bold">✓</span> Daily Midnight Grid Credits
+              <span className="text-amber-600 font-bold">✓</span> Daily Midnight Grid Credits
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-yellow-400 font-bold">✓</span> Instant Bank & UPI Cashouts
+              <span className="text-amber-600 font-bold">✓</span> Instant Bank & UPI Cashouts
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-yellow-400 font-bold">✓</span> Real-World Green Asset Backing
+              <span className="text-amber-600 font-bold">✓</span> Real-World Green Asset Backing
             </div>
           </div>
         </div>
@@ -147,26 +140,25 @@ export default function HomePage() {
 
       {/* ── How It Works (Solar Cycle) ────────────────── */}
       <div className="mx-4 mt-6">
-        <h2 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-          <span className="w-1.5 h-5 rounded-full bg-yellow-500 block" />
+        <h2 className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
+          <span className="w-1.5 h-5 rounded-full bg-amber-500 block" />
           How The Solar Cycle Works
         </h2>
         <div className="space-y-3">
           {steps.map((item) => (
             <div
               key={item.step}
-              className="flex items-center gap-4 rounded-xl p-4 border border-white/5 hover:border-yellow-500/30 transition-all"
-              style={{ background: 'rgba(22,33,62,0.8)' }}
+              className="flex items-center gap-4 rounded-xl p-4 border border-slate-200/80 bg-white hover:border-amber-300 shadow-sm transition-all"
             >
               <div
                 className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                style={{ background: `${item.color}22`, border: `1px solid ${item.color}44` }}
+                style={{ background: item.bg, border: `1px solid ${item.color}33` }}
               >
                 {item.icon}
               </div>
               <div className="flex-1">
-                <h3 className="text-white font-semibold text-sm">{item.title}</h3>
-                <p className="text-gray-400 text-xs mt-0.5">{item.desc}</p>
+                <h3 className="text-slate-900 font-bold text-sm">{item.title}</h3>
+                <p className="text-slate-500 text-xs mt-0.5">{item.desc}</p>
               </div>
               <div
                 className="text-xs font-black"
@@ -181,7 +173,7 @@ export default function HomePage() {
 
       {/* ── Why Choose Us ─────────────────────────────── */}
       <div className="mx-4 mt-6">
-        <h2 className="text-base font-bold text-white mb-3 flex items-center gap-2">
+        <h2 className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
           <span className="w-1.5 h-5 rounded-full bg-orange-500 block" />
           Solar Energy Advantages
         </h2>
@@ -189,12 +181,11 @@ export default function HomePage() {
           {features.map((f) => (
             <div
               key={f.title}
-              className="rounded-xl p-4 border border-white/5 hover:border-yellow-500/30 transition-all"
-              style={{ background: 'rgba(22,33,62,0.8)' }}
+              className="rounded-xl p-4 border border-slate-200/80 bg-white hover:border-amber-300 shadow-sm transition-all"
             >
               <span className="text-2xl">{f.icon}</span>
-              <h3 className="text-white font-semibold text-xs mt-2 mb-1">{f.title}</h3>
-              <p className="text-gray-400 text-[11px] leading-relaxed">{f.desc}</p>
+              <h3 className="text-slate-900 font-bold text-xs mt-2 mb-1">{f.title}</h3>
+              <p className="text-slate-500 text-[11px] leading-relaxed">{f.desc}</p>
             </div>
           ))}
         </div>
@@ -204,15 +195,15 @@ export default function HomePage() {
       <div className="mx-4 mt-7">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <span className="w-1.5 h-5 rounded-full bg-emerald-400 block" />
-            <h2 className="text-base font-bold text-white">Live Solar Withdrawal Proofs</h2>
+            <span className="w-1.5 h-5 rounded-full bg-emerald-500 block" />
+            <h2 className="text-base font-bold text-slate-900">Live Solar Withdrawal Proofs</h2>
           </div>
-          <span className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 bg-emerald-500/15 px-2.5 py-1 rounded-full border border-emerald-500/30">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+          <span className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
             100% Verified
           </span>
         </div>
-        <p className="text-gray-400 text-xs mb-3">Recent solar energy dividend payouts credited directly to users' Bank & UPI accounts.</p>
+        <p className="text-slate-500 text-xs mb-3">Recent solar energy dividend payouts credited directly to users' Bank & UPI accounts.</p>
 
         {/* Proof Cards */}
         <div className="space-y-3">
@@ -227,7 +218,7 @@ export default function HomePage() {
               time: '12 mins ago',
               refNo: 'UPI/426789123456',
               app: 'GPay',
-              appColor: 'from-blue-600 to-indigo-700'
+              appBg: 'bg-blue-50 text-blue-700 border-blue-200'
             },
             {
               name: 'Pooja Sharma',
@@ -239,7 +230,7 @@ export default function HomePage() {
               time: '34 mins ago',
               refNo: 'IMPS/426899452101',
               app: 'PhonePe',
-              appColor: 'from-purple-600 to-indigo-800'
+              appBg: 'bg-purple-50 text-purple-700 border-purple-200'
             },
             {
               name: 'Amit Patel',
@@ -251,7 +242,7 @@ export default function HomePage() {
               time: '1 hour ago',
               refNo: 'RTGS/PNB499120489',
               app: 'Paytm',
-              appColor: 'from-cyan-600 to-blue-800'
+              appBg: 'bg-sky-50 text-sky-700 border-sky-200'
             },
             {
               name: 'Vikram Singh',
@@ -263,53 +254,49 @@ export default function HomePage() {
               time: '2 hours ago',
               refNo: 'UPI/426987110943',
               app: 'BHIM',
-              appColor: 'from-emerald-600 to-teal-800'
+              appBg: 'bg-emerald-50 text-emerald-700 border-emerald-200'
             },
           ].map((proof, idx) => (
             <div
               key={idx}
-              className="rounded-2xl p-4 border border-white/10 relative overflow-hidden transition-all hover:border-emerald-500/40"
-              style={{
-                background: 'linear-gradient(135deg, rgba(15,34,64,0.9) 0%, rgba(22,33,62,0.95) 100%)',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.3)'
-              }}
+              className="rounded-2xl p-4 border border-slate-200/80 bg-white relative overflow-hidden shadow-sm hover:border-amber-300 transition-all"
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-black text-sm">
+                  <div className="w-9 h-9 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 font-black text-sm">
                     ✓
                   </div>
                   <div>
-                    <h4 className="text-white font-bold text-sm flex items-center gap-1.5">
+                    <h4 className="text-slate-900 font-bold text-sm flex items-center gap-1.5">
                       {proof.name}
-                      <span className="text-[10px] font-normal text-gray-400">({proof.phone})</span>
+                      <span className="text-[10px] font-normal text-slate-400">({proof.phone})</span>
                     </h4>
-                    <p className="text-gray-400 text-[11px]">{proof.bank}</p>
+                    <p className="text-slate-500 text-[11px]">{proof.bank}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className={`text-xs px-2.5 py-1 rounded-md font-bold text-white bg-gradient-to-r ${proof.appColor} shadow-sm`}>
+                  <span className={`text-xs px-2.5 py-0.5 rounded-md font-bold border ${proof.appBg}`}>
                     {proof.app}
                   </span>
-                  <p className="text-gray-500 text-[10px] mt-1">{proof.time}</p>
+                  <p className="text-slate-400 text-[10px] mt-1">{proof.time}</p>
                 </div>
               </div>
 
-              <div className="bg-dark/70 rounded-xl p-3 border border-white/5 my-2 flex items-center justify-between">
+              <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/60 my-2 flex items-center justify-between">
                 <div>
-                  <span className="text-gray-400 text-[10px] uppercase font-semibold tracking-wider block">Credited to A/C</span>
-                  <span className="text-emerald-400 font-black text-lg tracking-tight">{proof.amount}</span>
+                  <span className="text-slate-400 text-[10px] uppercase font-semibold tracking-wider block">Credited to A/C</span>
+                  <span className="text-emerald-600 font-black text-lg tracking-tight">{proof.amount}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-gray-400 block">From Plan</span>
-                  <span className="text-yellow-400 font-bold text-xs">{proof.plan}</span>
+                  <span className="text-[10px] text-slate-400 block">From Plan</span>
+                  <span className="text-amber-700 font-bold text-xs">{proof.plan}</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-[10px] text-gray-400 pt-1 border-t border-white/5">
-                <span>Ref: <span className="text-gray-300 font-mono">{proof.refNo}</span></span>
-                <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+              <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-100">
+                <span>Ref: <span className="text-slate-600 font-mono">{proof.refNo}</span></span>
+                <span className="text-emerald-600 font-semibold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
                   Bank Transfer Successful
                 </span>
               </div>
@@ -317,9 +304,9 @@ export default function HomePage() {
           ))}
         </div>
 
-        <div className="mt-3.5 bg-gradient-to-r from-emerald-500/10 via-yellow-500/10 to-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-center">
-          <p className="text-emerald-300 text-xs font-semibold">🛡️ 100% Guaranteed 3× Solar Dividend Returns</p>
-          <p className="text-gray-400 text-[10px] mt-0.5">Automated payouts directly to your verified Bank Account / UPI ID</p>
+        <div className="mt-3.5 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center">
+          <p className="text-emerald-800 text-xs font-bold">🛡️ 100% Guaranteed 3× Solar Dividend Returns</p>
+          <p className="text-emerald-600 text-[10px] mt-0.5 font-medium">Automated payouts directly to your verified Bank Account / UPI ID</p>
         </div>
       </div>
 
@@ -327,12 +314,11 @@ export default function HomePage() {
       <div className="mx-4 mt-6 mb-4">
         <button
           onClick={() => navigate('/plans')}
-          className="w-full rounded-2xl p-5 text-center border border-yellow-500/40 hover:border-yellow-500/70 transition-all"
-          style={{ background: 'linear-gradient(135deg,rgba(234,179,8,.2),rgba(249,115,22,.1))' }}
+          className="w-full rounded-2xl p-5 text-center border border-amber-200 bg-white hover:border-amber-400 shadow-sm transition-all"
         >
           <span className="text-3xl block mb-1">☀️</span>
-          <p className="text-white font-bold text-base">Start Your Solar Investment Today</p>
-          <p className="text-yellow-400 text-xs font-semibold mt-1">Select from ₹500 up to ₹25,000 · Guaranteed 3× ROI</p>
+          <p className="text-slate-900 font-extrabold text-base">Start Your Solar Investment Today</p>
+          <p className="text-amber-600 text-xs font-bold mt-1">Select from ₹500 up to ₹25,000 · Guaranteed 3× ROI</p>
         </button>
       </div>
 

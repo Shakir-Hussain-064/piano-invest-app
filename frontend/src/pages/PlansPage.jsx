@@ -48,54 +48,55 @@ export default function PlansPage() {
   const vipPlans = plans.filter(p => p.isVip);
 
   return (
-    <div className="min-h-screen bg-dark pb-24">
+    <div className="min-h-screen bg-slate-50 pb-28 text-slate-800">
       {/* Header */}
-      <div className="bg-card border-b border-yellow-500/20 px-5 py-4 flex items-center justify-between">
+      <div className="bg-white border-b border-slate-200/80 px-5 py-4 flex items-center justify-between shadow-sm">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-1.5">
+          <h1 className="text-xl font-extrabold text-slate-900 flex items-center gap-1.5">
             <span>☀️</span> Solar Plans
           </h1>
-          <p className="text-yellow-400 font-semibold text-xs mt-0.5">3× Guaranteed Returns (300% ROI)</p>
+          <p className="text-amber-600 font-bold text-xs mt-0.5">3× Guaranteed Returns (300% ROI)</p>
         </div>
         <div className="text-right">
-          <p className="text-gray-400 text-xs">Wallet Balance</p>
-          <p className="text-yellow-400 font-extrabold text-lg">₹{wallet?.balance?.toLocaleString() || '0'}</p>
+          <p className="text-slate-400 text-xs font-semibold">Wallet Balance</p>
+          <p className="text-amber-600 font-black text-lg">₹{wallet?.balance?.toLocaleString() || '0'}</p>
         </div>
       </div>
 
       {/* Message Alert */}
       {message.text && (
-        <div className={`mx-4 mt-4 p-3 rounded-xl text-sm font-medium ${
+        <div className={`mx-4 mt-4 p-3.5 rounded-xl text-sm font-semibold flex items-center gap-2 ${
           message.type === 'success'
-            ? 'bg-green-500/20 border border-green-500/40 text-green-300'
-            : 'bg-red-500/20 border border-red-500/40 text-red-300'
+            ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+            : 'bg-rose-50 border border-rose-200 text-rose-800'
         }`}>
-          {message.text}
+          <span>{message.type === 'success' ? '✅' : '❌'}</span>
+          <span>{message.text}</span>
         </div>
       )}
 
       {/* Tab Switcher */}
-      <div className="mx-4 mt-4 flex bg-card rounded-xl p-1 border border-yellow-500/20">
+      <div className="mx-4 mt-4 flex bg-white rounded-xl p-1 border border-slate-200 shadow-sm">
         <button
           onClick={() => setActiveTab('standard')}
-          className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all ${
-            activeTab === 'standard' ? 'bg-gradient-to-r from-yellow-500 to-amber-600 text-black shadow-md' : 'text-gray-400'
+          className={`flex-1 py-2.5 rounded-lg text-xs font-extrabold transition-all ${
+            activeTab === 'standard' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           ☀️ Standard 3×
         </button>
         <button
           onClick={() => setActiveTab('vip')}
-          className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all ${
-            activeTab === 'vip' ? 'bg-yellow-400 text-black shadow-md' : 'text-gray-400'
+          className={`flex-1 py-2.5 rounded-lg text-xs font-extrabold transition-all ${
+            activeTab === 'vip' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           ⚡ VIP Mega
         </button>
         <button
           onClick={() => setActiveTab('my')}
-          className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all ${
-            activeTab === 'my' ? 'bg-accent text-white shadow-md' : 'text-gray-400'
+          className={`flex-1 py-2.5 rounded-lg text-xs font-extrabold transition-all ${
+            activeTab === 'my' ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           🔋 My Units
@@ -105,7 +106,7 @@ export default function PlansPage() {
       {/* Plans Content */}
       <div className="px-4 mt-4">
         {loading ? (
-          <div className="text-center py-20 text-gray-400">Loading plans...</div>
+          <div className="text-center py-20 text-slate-400">Loading solar plans...</div>
         ) : activeTab === 'standard' ? (
           <div className="grid grid-cols-1 gap-4">
             {standardPlans.map(plan => (
@@ -114,9 +115,9 @@ export default function PlansPage() {
           </div>
         ) : activeTab === 'vip' ? (
           <div className="grid grid-cols-1 gap-4">
-            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 text-center">
-              <p className="text-yellow-400 text-sm font-semibold">👑 Exclusive VIP Plans</p>
-              <p className="text-gray-400 text-xs mt-0.5">Higher returns, maximum profit</p>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-center shadow-sm">
+              <p className="text-amber-900 text-sm font-extrabold">👑 Exclusive VIP Solar Mega Stations</p>
+              <p className="text-amber-700 text-xs mt-0.5">Industrial grade solar grids with accelerated daily yield</p>
             </div>
             {vipPlans.map(plan => (
               <PlanCard key={plan.id} plan={plan} onBuy={handleBuy} walletBalance={wallet?.balance || 0} />
@@ -125,62 +126,62 @@ export default function PlansPage() {
         ) : (
           <div className="space-y-3">
             {myPlans.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="text-5xl mb-3">📭</div>
-                <p className="text-gray-400">No active plans yet</p>
-                <p className="text-gray-600 text-sm mt-1">Purchase a plan to start earning</p>
+              <div className="text-center py-16 bg-white rounded-2xl border border-slate-200">
+                <div className="text-5xl mb-3">☀️</div>
+                <p className="text-slate-700 font-bold">No active solar units yet</p>
+                <p className="text-slate-400 text-xs mt-1">Fund a solar unit to start earning daily power dividends</p>
               </div>
             ) : (
               myPlans.map(plan => (
-                <div key={plan._id} className={`rounded-xl p-4 border ${
+                <div key={plan._id} className={`rounded-2xl p-4 border shadow-sm ${
                   plan.isComplete
-                    ? 'bg-gray-800/50 border-gray-700'
+                    ? 'bg-slate-50 border-slate-200 opacity-80'
                     : plan.isVip
-                      ? 'bg-yellow-900/20 border-yellow-500/40'
-                      : 'bg-card border-primary/30'
+                      ? 'bg-gradient-to-br from-amber-50 to-orange-50/50 border-amber-300'
+                      : 'bg-white border-slate-200'
                 }`}>
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h3 className={`font-bold ${ plan.isVip ? 'text-yellow-400' : 'text-primary' }`}>
+                      <h3 className="font-extrabold text-slate-900 text-sm">
                         {plan.planName} {plan.isVip && '👑'}
                       </h3>
-                      <p className="text-gray-400 text-xs">
-                        Started {new Date(plan.startDate).toLocaleDateString('en-IN')}
+                      <p className="text-slate-400 text-xs mt-0.5">
+                        Activated on {new Date(plan.startDate).toLocaleDateString('en-IN')}
                       </p>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded-full font-semibold ${
-                      plan.isComplete ? 'bg-gray-700 text-gray-400' : 'bg-green-500/20 text-green-400'
+                    <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold border ${
+                      plan.isComplete ? 'bg-slate-100 text-slate-500 border-slate-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                     }`}>
-                      {plan.isComplete ? 'Completed' : 'Active'}
+                      {plan.isComplete ? 'Completed' : '● Generating Power'}
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-2 mb-3">
-                    <div className="bg-dark/50 rounded-lg p-2">
-                      <p className="text-gray-500 text-xs">Invested</p>
-                      <p className="text-white font-bold text-sm">₹{plan.investedAmount.toLocaleString()}</p>
+                    <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-200/60">
+                      <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Invested</p>
+                      <p className="text-slate-900 font-extrabold text-sm">₹{plan.investedAmount.toLocaleString()}</p>
                     </div>
-                    <div className="bg-dark/50 rounded-lg p-2">
-                      <p className="text-gray-500 text-xs">Daily Earn</p>
-                      <p className="text-green-400 font-bold text-sm">₹{plan.dailyEarn.toLocaleString()}</p>
+                    <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-200/60">
+                      <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Daily Earning</p>
+                      <p className="text-emerald-600 font-extrabold text-sm">₹{plan.dailyEarn.toLocaleString()}/day</p>
                     </div>
-                    <div className="bg-dark/50 rounded-lg p-2">
-                      <p className="text-gray-500 text-xs">Earned So Far</p>
-                      <p className="text-emerald-400 font-bold text-sm">₹{plan.earnedSoFar.toLocaleString()}</p>
+                    <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-200/60">
+                      <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Earned So Far</p>
+                      <p className="text-emerald-700 font-extrabold text-sm">₹{plan.earnedSoFar.toLocaleString()}</p>
                     </div>
-                    <div className="bg-dark/50 rounded-lg p-2">
-                      <p className="text-gray-500 text-xs">Total Return</p>
-                      <p className="text-white font-bold text-sm">₹{plan.totalReturn.toLocaleString()}</p>
+                    <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-200/60">
+                      <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Total 3× Return</p>
+                      <p className="text-amber-700 font-black text-sm">₹{plan.totalReturn.toLocaleString()}</p>
                     </div>
                   </div>
                   {/* Progress Bar */}
                   <div>
-                    <div className="flex justify-between text-xs text-gray-500 mb-1">
-                      <span>Day {plan.daysCompleted}/{plan.totalDays}</span>
-                      <span>{Math.round((plan.earnedSoFar / plan.totalReturn) * 100)}%</span>
+                    <div className="flex justify-between text-xs text-slate-500 font-semibold mb-1">
+                      <span>Day {plan.daysCompleted} of {plan.totalDays}</span>
+                      <span className="text-amber-700 font-bold">{Math.round((plan.earnedSoFar / plan.totalReturn) * 100)}%</span>
                     </div>
-                    <div className="w-full bg-dark/50 rounded-full h-2">
+                    <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
                       <div
-                        className={`h-2 rounded-full transition-all ${ plan.isVip ? 'bg-yellow-500' : 'bg-primary' }`}
+                        className="h-2 rounded-full transition-all bg-gradient-to-r from-amber-500 to-orange-500"
                         style={{ width: `${Math.min((plan.earnedSoFar / plan.totalReturn) * 100, 100)}%` }}
                       />
                     </div>
