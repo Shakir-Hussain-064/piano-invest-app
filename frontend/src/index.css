@@ -10,9 +10,13 @@
   padding: 0;
 }
 
+html {
+  background-color: #F1F5F9;
+}
+
 body {
-  background-color: #F8FAFC;
-  color: #0F172A;
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -20,7 +24,18 @@ body {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.08);
+}
+
+/* Force pure light styling across any residual dark containers */
+.bg-dark {
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+}
+
+.bg-card {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
 }
 
 /* custom light scrollbar */
