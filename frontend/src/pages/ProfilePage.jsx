@@ -75,7 +75,10 @@ export default function ProfilePage() {
               {copied ? '✓ Copied!' : 'Copy'}
             </button>
           </div>
-          <p className="text-gray-600 text-xs mt-2">Share this code with friends to earn referral bonuses</p>
+          <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-white/5">
+            <span className="text-emerald-400 text-xs font-bold">🎁 ₹100 Welcome Bonus:</span>
+            <span className="text-gray-400 text-[11px]">Friends who join with your code get ₹100 instantly!</span>
+          </div>
         </div>
       </div>
 

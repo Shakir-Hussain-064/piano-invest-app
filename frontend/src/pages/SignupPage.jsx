@@ -88,12 +88,18 @@ export default function SignupPage() {
 
           {/* Referral */}
           <div>
-            <label className="text-gray-400 text-xs font-semibold uppercase tracking-widest block mb-1.5">
-              Referral Code <span className="text-gray-600 normal-case">(optional)</span>
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-gray-400 text-xs font-semibold uppercase tracking-widest">
+                Referral Code
+              </label>
+              <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                🎁 Get ₹100 Free Bonus
+              </span>
+            </div>
             <input type="text" name="referralCode" value={form.referralCode} onChange={handleChange}
-              placeholder="Enter referral code"
-              className="w-full bg-dark border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-primary transition text-sm" />
+              placeholder="e.g. REFXXXXXX (optional)"
+              className="w-full bg-dark border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-primary transition text-sm uppercase tracking-wider" />
+            <p className="text-[11px] text-gray-500 mt-1">Enter a friend's referral code to unlock an instant ₹100 Welcome Bonus in your wallet.</p>
           </div>
 
           {/* CAPTCHA */}
