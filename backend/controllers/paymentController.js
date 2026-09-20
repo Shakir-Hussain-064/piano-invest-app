@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const Wallet = require('../models/Wallet');
 const PaymentOrder = require('../models/PaymentOrder');
 
-const UPI_ID = process.env.UPI_ID || '79062276slic.slc';
+const UPI_ID = process.env.UPI_ID || '79062276slic@slc';
 const BRAND_NAME = process.env.BRAND_NAME || 'Solar Wealth';
 
 // 1. Create a dynamic UPI payment request

@@ -15,7 +15,7 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: UPI_ID
-        value: 79062276slic.slc
+        value: 79062276slic@slc
       - key: BRAND_NAME
         value: Solar Wealth
       - key: CLIENT_URL
