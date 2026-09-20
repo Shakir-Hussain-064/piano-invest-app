@@ -1,12 +1,11 @@
-const crypto = require('crypto');
 const Wallet = require('../models/Wallet');
 const PaymentOrder = require('../models/PaymentOrder');
 
-const BHARATPE_VPA = process.env.UPI_ID || 'BHARATPE2V0A0L7H9O51145@unitype';
-const BHARATPE_BPSIGN = 'UndITHhpZzdKaVZTbS9oMllneEJzcHY1UWlSNDBVbEVZL1lwUFZrSXJobz0=';
+// BharatPe VPA - used to receive payments
+const PAYEE_VPA  = process.env.UPI_ID || 'BHARATPE2V0A0L7H9O51145@unitype';
 const BRAND_NAME = process.env.BRAND_NAME || 'Solar Wealth';
 
-// 1. Create a BharatPe merchant payment request
+// 1. Create a clean UPI payment order (no bpsign - causes UPI Risk warning)
 exports.createUpiOrder = async (req, res) => {
   try {
     const { amount } = req.body;
@@ -16,19 +15,21 @@ exports.createUpiOrder = async (req, res) => {
       return res.status(400).json({ message: 'Minimum recharge amount is ₹10' });
     }
 
-    // Generate unique Order ID
-    const orderId = 'SW' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
-    const amountStr = numAmount % 1 === 0 ? numAmount.toString() : numAmount.toFixed(2);
+    const orderId  = 'SW' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
+    const amtStr   = numAmount % 1 === 0 ? numAmount.toString() : numAmount.toFixed(2);
 
-    // Official BharatPe Merchant UPI link with amount
-    const upiUrl = `upi://pay?pa=${BHARATPE_VPA}&pn=${encodeURIComponent(BRAND_NAME)}&am=${amountStr}&cu=INR&bpsign=${encodeURIComponent(BHARATPE_BPSIGN)}`;
+    // Clean NPCI-standard UPI deep link — NO bpsign, NO tr
+    // bpsign causes "UPI Risk / Suspicious" warning on PhonePe & GPay for non-registered merchant VPAs
+    const upiUrl     = `upi://pay?pa=${PAYEE_VPA}&pn=${encodeURIComponent(BRAND_NAME)}&am=${amtStr}&cu=INR`;
+    const phonepeUrl = `phonepe://pay?pa=${PAYEE_VPA}&pn=${encodeURIComponent(BRAND_NAME)}&am=${amtStr}&cu=INR`;
+    const gpayUrl    = `tez://upi/pay?pa=${PAYEE_VPA}&pn=${encodeURIComponent(BRAND_NAME)}&am=${amtStr}&cu=INR`;
+    const paytmUrl   = `paytmmp://pay?pa=${PAYEE_VPA}&pn=${encodeURIComponent(BRAND_NAME)}&am=${amtStr}&cu=INR`;
 
-    // Save order in database
     await PaymentOrder.create({
       userId: req.user._id,
       orderId,
       amount: numAmount,
-      upiId: BHARATPE_VPA,
+      upiId: PAYEE_VPA,
       brandName: BRAND_NAME,
       status: 'pending',
     });
@@ -38,10 +39,12 @@ exports.createUpiOrder = async (req, res) => {
       orderId,
       amount: numAmount,
       upiUrl,
-      qrImage: '/bharatpe_card.png',
+      phonepeUrl,
+      gpayUrl,
+      paytmUrl,
     });
   } catch (error) {
-    console.error('Create BharatPe Order error:', error);
+    console.error('createUpiOrder error:', error);
     res.status(500).json({ message: 'Could not create payment order: ' + error.message });
   }
 };

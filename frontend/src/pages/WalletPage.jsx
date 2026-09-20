@@ -288,12 +288,14 @@ export default function WalletPage() {
                 </div>
               </div>
             ) : (
-              // Step 2: Display BharatPe Official QR & Enter UTR
-              <div className="bg-white rounded-3xl p-6 border border-emerald-200 shadow-xl space-y-5 text-center">
+              // Step 2: Scan QR & Pay
+              <div className="bg-white rounded-3xl p-6 border border-amber-200 shadow-xl space-y-5 text-center">
+
+                {/* Header */}
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <div className="text-left">
-                    <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 uppercase tracking-wider">
-                      Official BharatPe Merchant QR
+                    <span className="text-[11px] font-extrabold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 uppercase tracking-wider">
+                      ☀️ Solar Wealth · Scan & Pay
                     </span>
                     <p className="text-slate-900 font-black text-2xl mt-1">₹{Number(activeOrder.amount).toLocaleString('en-IN')}</p>
                   </div>
@@ -301,69 +303,77 @@ export default function WalletPage() {
                     onClick={() => setActiveOrder(null)}
                     className="text-xs text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-xl transition"
                   >
-                    ✕ Change Amount
+                    ✕ Change
                   </button>
                 </div>
 
-                {/* BharatPe Official QR Code Card */}
-                <div className="bg-gradient-to-b from-emerald-50/50 to-white p-4 rounded-2xl border-2 border-emerald-300 shadow-sm max-w-[320px] mx-auto">
-                  <img
-                    src="/bharatpe_card.png"
-                    alt="Scan BharatPe QR to Pay"
-                    className="w-full h-auto rounded-xl shadow-md border border-slate-200"
+                {/* Dynamic QR — generated fresh, no bpsign, no risk warning */}
+                <div className="bg-white p-4 rounded-2xl border-2 border-amber-300 shadow-sm inline-block mx-auto">
+                  <QRCodeSVG
+                    value={activeOrder.upiUrl}
+                    size={210}
+                    level="M"
+                    includeMargin={true}
                   />
-                  <div className="mt-3 text-center space-y-0.5">
-                    <p className="text-xs font-black text-slate-800 flex items-center justify-center gap-1.5">
-                      <span>⚡</span> Scan with any UPI App
-                    </p>
-                    <p className="text-[11px] text-slate-500 font-semibold">
-                      Google Pay · PhonePe · Paytm · BHIM
-                    </p>
-                  </div>
+                  <p className="text-xs font-black text-slate-700 mt-2 flex items-center justify-center gap-1">
+                    <span>⚡</span> Scan with any UPI App
+                  </p>
+                  <p className="text-[11px] text-slate-400 font-semibold">
+                    Google Pay · PhonePe · Paytm · BHIM
+                  </p>
                 </div>
 
-                {/* Direct Pay Link for Mobile Users */}
-                {activeOrder.upiUrl && (
-                  <div>
-                    <a
-                      href={activeOrder.upiUrl}
-                      className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 text-white font-extrabold py-3.5 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-sm"
-                    >
-                      <span>📲</span> Tap to Pay ₹{Number(activeOrder.amount).toLocaleString('en-IN')} on Mobile
-                    </a>
-                    <p className="text-[11px] text-slate-400 mt-1">Mobile user? Tap button to open UPI app directly</p>
-                  </div>
-                )}
+                {/* Direct App Buttons for Mobile */}
+                <div className="grid grid-cols-2 gap-2">
+                  <a href={activeOrder.phonepeUrl || activeOrder.upiUrl}
+                    className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-3 rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-1.5">
+                    🟣 PhonePe
+                  </a>
+                  <a href={activeOrder.gpayUrl || activeOrder.upiUrl}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-3 rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-1.5">
+                    🔵 Google Pay
+                  </a>
+                  <a href={activeOrder.paytmUrl || activeOrder.upiUrl}
+                    className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-3 rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-1.5">
+                    🔷 Paytm
+                  </a>
+                  <a href={activeOrder.upiUrl}
+                    className="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-3 rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-1.5">
+                    📱 Other UPI
+                  </a>
+                </div>
+                <p className="text-[11px] text-slate-400">Mobile user? Tap your app button above to open directly</p>
 
-                {/* Step 3: Enter UTR Form */}
+                {/* UTR Entry */}
                 <form onSubmit={handleSubmitUtr} className="space-y-3 pt-3 border-t border-slate-100 text-left">
                   <div>
                     <label className="text-slate-800 text-xs font-black block mb-1">
-                      Enter 12-Digit UTR / Transaction Ref No:
+                      Payment Ref No (UTR) — 12 digits:
                     </label>
                     <input
                       type="text"
+                      inputMode="numeric"
                       value={utrInput}
                       onChange={(e) => setUtrInput(e.target.value.replace(/\D/g, '').slice(0, 12))}
                       placeholder="e.g. 426789123456"
                       maxLength={12}
                       required
-                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 font-mono text-base tracking-widest font-bold shadow-inner"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 font-mono text-base tracking-widest font-bold shadow-inner"
                     />
-                    <p className="text-[11px] text-slate-500 mt-1.5 font-medium">
-                      💡 QR par payment complete hone ke baad payment receipt se <strong>12-digit UTR</strong> number yahan enter karein.
+                    <p className="text-[11px] text-slate-500 mt-1.5">
+                      💡 Payment ke baad PhonePe / GPay receipt me <strong>"UPI Ref No"</strong> ya <strong>"UTR"</strong> check karein.
                     </p>
                   </div>
 
                   <button
                     type="submit"
                     disabled={submittingUtr || !utrInput || utrInput.length < 6}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-extrabold py-4 rounded-xl shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center gap-2 text-sm"
+                    className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-extrabold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm"
                   >
                     {submittingUtr ? (
-                      <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Verifying UTR…</>
+                      <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Verifying…</>
                     ) : (
-                      <><span>✓</span> Verify UTR & Add Money to Wallet</>
+                      <><span>✓</span> Submit UTR & Add ₹{Number(activeOrder.amount).toLocaleString('en-IN')} to Wallet</>
                     )}
                   </button>
                 </form>
