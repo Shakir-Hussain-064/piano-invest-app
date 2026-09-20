@@ -89,7 +89,7 @@ export default function ProfilePage() {
           { icon: '👛', label: 'Solar Wallet', action: () => navigate('/wallet') },
           { icon: '🔔', label: 'Power Notifications', action: () => {} },
           { icon: '🛡️', label: 'Account Security', action: () => {} },
-          { icon: '📞', label: 'Solar Help Support', action: () => {} },
+          { icon: '📞', label: 'Solar Help Support', action: () => { window.location.href = 'https://www.instagram.com/solar_wealth/'; } },
           { icon: 'ℹ️', label: 'About SolarWealth', action: () => navigate('/home') },
         ].map((item) => (
           <button

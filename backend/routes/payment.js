@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { createOrder, verifyPayment } = require('../controllers/paymentController');
+const { createUpiOrder, submitUtr, createOrder, verifyPayment } = require('../controllers/paymentController');
 const { protect } = require('../middleware/authMiddleware');
 
-router.post('/create-order', protect, createOrder);
-router.post('/verify', protect, verifyPayment);
+// UPI dynamic payment endpoints
+router.post('/create-order', protect, createUpiOrder);
+router.post('/create-upi', protect, createUpiOrder);
+router.post('/submit-utr', protect, submitUtr);
+router.post('/verify', protect, submitUtr);
 
 module.exports = router;

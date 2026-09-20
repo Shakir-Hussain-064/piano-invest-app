@@ -3,18 +3,6 @@ import BottomNav from '../components/BottomNav';
 import { useAuth } from '../context/AuthContext';
 import API from '../api/axios';
 
-// Load Razorpay SDK dynamically
-function loadRazorpay() {
-  return new Promise((resolve) => {
-    if (window.Razorpay) return resolve(true);
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.onload  = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-}
-
 export default function WalletPage() {
   const { user }                            = useAuth();
   const [wallet, setWallet]                 = useState(null);
@@ -24,6 +12,12 @@ export default function WalletPage() {
   const [paying, setPaying]                 = useState(false);
   const [withdrawing, setWithdrawing]       = useState(false);
   const [message, setMessage]               = useState({ text: '', type: '' });
+
+  // Dynamic UPI Payment state
+  const [activeOrder, setActiveOrder]       = useState(null);
+  const [utrInput, setUtrInput]             = useState('');
+  const [submittingUtr, setSubmittingUtr]   = useState(false);
+  const [copiedUpi, setCopiedUpi]           = useState(false);
 
   // Withdraw form state
   const [withdrawAmount, setWithdrawAmount] = useState('');
@@ -39,7 +33,6 @@ export default function WalletPage() {
     try {
       const { data } = await API.get('/wallet');
       setWallet(data);
-      // Pre-fill saved bank details
       if (data.bankAccount?.upiId)     setUpiId(data.bankAccount.upiId);
       if (data.bankAccount?.bankName)  setBank({
         accountHolder: data.bankAccount.accountHolder || '',
@@ -56,60 +49,59 @@ export default function WalletPage() {
 
   const showMsg = (text, type) => {
     setMessage({ text, type });
-    setTimeout(() => setMessage({ text: '', type: '' }), 5000);
+    setTimeout(() => setMessage({ text: '', type: '' }), 6000);
   };
 
-  // ── Razorpay Payment Flow ─────────────────────────────────────
-  const handleRazorpayRecharge = async () => {
+  // ── Step 1: Generate Dynamic UPI QR & Intent ──────────────────
+  const handleGenerateUpi = async () => {
     const amt = Number(rechargeAmount);
     if (!amt || amt < 100) { showMsg('Minimum recharge amount is ₹100', 'error'); return; }
 
     setPaying(true);
     try {
-      const { data: order } = await API.post('/payment/create-order', { amount: amt });
-      const ok = await loadRazorpay();
-      if (!ok) { showMsg('Failed to load payment gateway. Check your internet.', 'error'); return; }
-
-      const options = {
-        key:         order.keyId || import.meta.env.VITE_RAZORPAY_KEY,
-        amount:      order.amount,
-        currency:    order.currency,
-        name:        'SolarWealth',
-        description: 'Solar Energy Wallet Recharge',
-        order_id:    order.orderId,
-        handler: async (response) => {
-          try {
-            const { data } = await API.post('/payment/verify', {
-              razorpay_order_id:   response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature:  response.razorpay_signature,
-              amount: order.amount,
-            });
-            showMsg(data.message, 'success');
-            setRechargeAmount('');
-            fetchWallet();
-          } catch (err) {
-            showMsg(err.response?.data?.message || 'Payment verification failed', 'error');
-          }
-        },
-        prefill: {
-          name:  user?.name || '',
-          email: user?.email || '',
-        },
-        theme:  { color: '#D97706' },
-        modal:  { ondismiss: () => { showMsg('Payment cancelled by user', 'error'); setPaying(false); } },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.on('payment.failed', (response) => {
-        showMsg(response.error?.description || response.error?.reason || 'Payment failed. Please try again.', 'error');
-        setPaying(false);
-      });
-      rzp.open();
+      const { data } = await API.post('/payment/create-order', { amount: amt });
+      setActiveOrder(data);
+      setUtrInput('');
+      showMsg(`Dynamic Solar UPI QR generated for ₹${amt}. Pay & enter 12-digit UTR below.`, 'success');
     } catch (err) {
-      showMsg(err.response?.data?.message || err.message || 'Could not initiate payment', 'error');
+      showMsg(err.response?.data?.message || 'Could not generate UPI QR', 'error');
     } finally {
       setPaying(false);
+    }
+  };
+
+  // ── Step 2: Submit 12-digit UTR / Reference ID ────────────────
+  const handleSubmitUtr = async (e) => {
+    e.preventDefault();
+    if (!utrInput || utrInput.trim().length < 6) {
+      showMsg('Please enter a valid 12-digit UTR / UPI Reference Number from your payment app', 'error');
+      return;
+    }
+
+    setSubmittingUtr(true);
+    try {
+      const { data } = await API.post('/payment/submit-utr', {
+        orderId: activeOrder.orderId,
+        utr: utrInput.trim(),
+      });
+      showMsg(data.message, 'success');
+      setActiveOrder(null);
+      setRechargeAmount('');
+      setUtrInput('');
+      fetchWallet();
+      setActiveTab('overview');
+    } catch (err) {
+      showMsg(err.response?.data?.message || 'UTR verification failed. Check the reference number.', 'error');
+    } finally {
+      setSubmittingUtr(false);
+    }
+  };
+
+  const copyUpiId = () => {
+    if (activeOrder?.upiId) {
+      navigator.clipboard.writeText(activeOrder.upiId);
+      setCopiedUpi(true);
+      setTimeout(() => setCopiedUpi(false), 2000);
     }
   };
 
@@ -194,7 +186,7 @@ export default function WalletPage() {
       <div className="mx-4 mt-4 flex bg-white rounded-2xl p-1.5 border border-slate-200 shadow-sm gap-1">
         {[
           { id: 'overview', label: '📊  Overview' },
-          { id: 'recharge', label: '💳  Recharge' },
+          { id: 'recharge', label: '⚡  UPI Recharge' },
           { id: 'withdraw', label: '🏦  Withdraw' },
         ].map((tab) => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -214,7 +206,6 @@ export default function WalletPage() {
         {/* OVERVIEW */}
         {activeTab === 'overview' && (
           <div className="space-y-3">
-            {/* info banner */}
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 flex gap-2.5 items-start">
               <span className="text-lg">💡</span>
               <p className="text-amber-900 text-xs leading-relaxed">
@@ -250,56 +241,146 @@ export default function WalletPage() {
           </div>
         )}
 
-        {/* RECHARGE */}
+        {/* RECHARGE (DYNAMIC UPI QR + INTENT) */}
         {activeTab === 'recharge' && (
           <div className="space-y-5">
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 shadow-sm">
-              <span className="text-2xl">⚡</span>
-              <div>
-                <p className="text-amber-900 font-extrabold text-sm">Instant Solar Wallet Recharge</p>
-                <p className="text-amber-700 text-xs mt-0.5">Pay via UPI (GPay, PhonePe, Paytm), Card, or Net Banking powered by Razorpay.</p>
-              </div>
-            </div>
+            {!activeOrder ? (
+              // Step 1: Amount Selection
+              <div className="space-y-5">
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 shadow-sm">
+                  <span className="text-2xl">⚡</span>
+                  <div>
+                    <p className="text-amber-900 font-extrabold text-sm">Direct UPI Instant Recharge</p>
+                    <p className="text-amber-700 text-xs mt-0.5">Pay via Google Pay, PhonePe, Paytm, or BHIM UPI using verified Dynamic QR.</p>
+                  </div>
+                </div>
 
-            {/* quick select */}
-            <div>
-              <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Quick Select Solar Capacity</p>
-              <div className="grid grid-cols-3 gap-2">
-                {quickAmounts.map((amt) => (
-                  <button key={amt} onClick={() => setRechargeAmount(String(amt))}
-                    className={`py-3 rounded-xl text-sm font-black border transition-all ${
-                      rechargeAmount === String(amt)
-                        ? 'bg-amber-500 border-amber-600 text-white shadow-md'
-                        : 'bg-white border-slate-200 text-slate-700 hover:border-amber-400'
-                    }`}>
-                    ₹{amt >= 1000 ? `${amt/1000}K` : amt}
+                {/* quick select */}
+                <div>
+                  <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Select Solar Capacity</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {quickAmounts.map((amt) => (
+                      <button key={amt} onClick={() => setRechargeAmount(String(amt))}
+                        className={`py-3 rounded-xl text-sm font-black border transition-all ${
+                          rechargeAmount === String(amt)
+                            ? 'bg-amber-500 border-amber-600 text-white shadow-md'
+                            : 'bg-white border-slate-200 text-slate-700 hover:border-amber-400'
+                        }`}>
+                        ₹{amt >= 1000 ? `${amt/1000}K` : amt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Or Custom Amount</p>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                    <input type="number" value={rechargeAmount} onChange={(e) => setRechargeAmount(e.target.value)}
+                      placeholder="Enter amount (min ₹100)"
+                      className="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 transition shadow-sm font-semibold" />
+                  </div>
+                </div>
+
+                <button onClick={handleGenerateUpi} disabled={paying || !rechargeAmount}
+                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold py-4 rounded-xl transition-all shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 text-sm">
+                  {paying ? (
+                    <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generating QR…</>
+                  ) : (
+                    <><span>📱</span> Proceed to Pay ₹{Number(rechargeAmount || 0).toLocaleString('en-IN')}</>
+                  )}
+                </button>
+
+                <div className="flex items-center justify-center gap-2 text-slate-400 text-xs font-medium">
+                  <span>🔒</span><span>Direct UPI Banking · Zero Payment Gateway Fees</span>
+                </div>
+              </div>
+            ) : (
+              // Step 2: Display Dynamic QR & Enter UTR
+              <div className="bg-white rounded-3xl p-5 border border-amber-200 shadow-md space-y-4 text-center">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="text-left">
+                    <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 uppercase">
+                      Solar Wealth Merchant
+                    </span>
+                    <p className="text-slate-900 font-black text-lg mt-1">₹{activeOrder.amount.toLocaleString('en-IN')}</p>
+                  </div>
+                  <button onClick={() => setActiveOrder(null)} className="text-xs text-slate-400 hover:text-slate-600 font-semibold px-2 py-1">
+                    ✕ Cancel
                   </button>
-                ))}
+                </div>
+
+                {/* Dynamic QR Code Image */}
+                <div className="bg-white p-3 rounded-2xl inline-block border-2 border-amber-300 shadow-sm">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(activeOrder.upiUrl)}`}
+                    alt="Solar Wealth Dynamic UPI QR"
+                    className="w-48 h-48 mx-auto rounded-lg"
+                  />
+                  <p className="text-[11px] font-bold text-slate-700 mt-1.5 flex items-center justify-center gap-1">
+                    <span>⚡ Pay to:</span> <span className="text-amber-800 font-black">{activeOrder.brandName}</span>
+                  </p>
+                </div>
+
+                {/* One-Click UPI Intent Button (Mobile) */}
+                <div>
+                  <a
+                    href={activeOrder.upiUrl}
+                    className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 text-white font-extrabold py-3.5 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-sm"
+                  >
+                    <span>📲</span> Open GPay / PhonePe / Paytm
+                  </a>
+                  <p className="text-[11px] text-slate-400 mt-1">Tap button above or scan QR from another phone</p>
+                </div>
+
+                {/* Manual UPI ID copy */}
+                <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-200 flex items-center justify-between text-xs">
+                  <div className="text-left">
+                    <span className="text-[10px] text-slate-400 font-bold block">UPI ID:</span>
+                    <span className="text-slate-800 font-mono font-bold">{activeOrder.upiId}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={copyUpiId}
+                    className="bg-amber-100 text-amber-800 font-bold px-3 py-1.5 rounded-lg hover:bg-amber-200 transition text-xs"
+                  >
+                    {copiedUpi ? '✓ Copied' : 'Copy'}
+                  </button>
+                </div>
+
+                {/* Step 3: Enter UTR form */}
+                <form onSubmit={handleSubmitUtr} className="space-y-3 pt-2 border-t border-slate-100 text-left">
+                  <div>
+                    <label className="text-slate-700 text-xs font-bold block mb-1">
+                      Enter 12-Digit UTR / Transaction Ref No:
+                    </label>
+                    <input
+                      type="text"
+                      value={utrInput}
+                      onChange={(e) => setUtrInput(e.target.value)}
+                      placeholder="e.g. 426789123456"
+                      required
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 font-mono text-sm tracking-wider font-bold"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      Found in payment receipt on PhonePe / GPay / Paytm as "UPI Ref ID" or "UTR".
+                    </p>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={submittingUtr || !utrInput}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                  >
+                    {submittingUtr ? (
+                      <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Verifying Payment…</>
+                    ) : (
+                      <><span>✓</span> Submit UTR & Add Money</>
+                    )}
+                  </button>
+                </form>
               </div>
-            </div>
-
-            <div>
-              <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Custom Amount</p>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
-                <input type="number" value={rechargeAmount} onChange={(e) => setRechargeAmount(e.target.value)}
-                  placeholder="Enter amount (min ₹100)"
-                  className="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 transition shadow-sm font-semibold" />
-              </div>
-            </div>
-
-            <button onClick={handleRazorpayRecharge} disabled={paying || !rechargeAmount}
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold py-4 rounded-xl transition-all shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2">
-              {paying ? (
-                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Connecting Gateway…</>
-              ) : (
-                <><span>⚡</span> Add ₹{Number(rechargeAmount || 0).toLocaleString('en-IN')} via Razorpay</>
-              )}
-            </button>
-
-            <div className="flex items-center justify-center gap-2 text-slate-400 text-xs font-medium">
-              <span>🔒</span><span>256-bit SSL secured · Powered by Razorpay</span>
-            </div>
+            )}
           </div>
         )}
 

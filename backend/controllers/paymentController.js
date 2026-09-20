@@ -1,102 +1,112 @@
-const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const Wallet = require('../models/Wallet');
+const PaymentOrder = require('../models/PaymentOrder');
 
-// Lazy-initialize Razorpay so server starts even without keys set yet
-const getRazorpay = () => {
-  if (!process.env.RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID.includes('REPLACE')) {
-    throw new Error('Razorpay keys not configured. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to .env');
-  }
-  return new Razorpay({
-    key_id:     process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
-  });
-};
+const UPI_ID = process.env.UPI_ID || '79062276slic.slc';
+const BRAND_NAME = process.env.BRAND_NAME || 'Solar Wealth';
 
-// Create a Razorpay order
-exports.createOrder = async (req, res) => {
+// 1. Create a dynamic UPI payment request
+exports.createUpiOrder = async (req, res) => {
   try {
     const { amount } = req.body;
+    const numAmount = Number(amount);
 
-    if (!amount || Number(amount) < 100) {
+    if (!numAmount || numAmount < 100) {
       return res.status(400).json({ message: 'Minimum recharge amount is ₹100' });
     }
 
-    let razorpay;
-    try {
-      razorpay = getRazorpay();
-    } catch (e) {
-      return res.status(503).json({ message: e.message });
-    }
+    // Generate unique dynamic Order ID & Transaction Reference
+    const orderId = 'SW' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
 
-    const options = {
-      amount:   Number(amount) * 100, // Razorpay works in paise
-      currency: 'INR',
-      receipt:  `receipt_${req.user._id}_${Date.now()}`,
-      notes: {
-        userId:    req.user._id.toString(),
-        userEmail: req.user.email,
-      },
-    };
+    // Construct the standard NPCI compliant UPI payment URL
+    // pa: Payee UPI ID
+    // pn: Payee Name (Brand Name: Solar Wealth)
+    // am: Amount
+    // cu: Currency (INR)
+    // tr: Transaction Reference ID (dynamic per order)
+    // tn: Transaction Note
+    const encodedBrand = encodeURIComponent(BRAND_NAME);
+    const note = encodeURIComponent(`Recharge ${orderId}`);
+    const upiUrl = `upi://pay?pa=${UPI_ID}&pn=${encodedBrand}&am=${numAmount.toFixed(2)}&cu=INR&tr=${orderId}&tn=${note}`;
 
-    const order = await razorpay.orders.create(options);
+    // Save order in database
+    await PaymentOrder.create({
+      userId: req.user._id,
+      orderId,
+      amount: numAmount,
+      upiId: UPI_ID,
+      brandName: BRAND_NAME,
+      status: 'pending',
+    });
+
     res.json({
-      orderId:  order.id,
-      amount:   order.amount,
-      currency: order.currency,
-      keyId:    process.env.RAZORPAY_KEY_ID,
+      success: true,
+      orderId,
+      amount: numAmount,
+      upiId: UPI_ID,
+      brandName: BRAND_NAME,
+      upiUrl,
     });
   } catch (error) {
-    console.error('Razorpay order error:', error.message);
-    res.status(500).json({ message: 'Failed to create payment order: ' + error.message });
+    console.error('Create UPI Order error:', error);
+    res.status(500).json({ message: 'Could not create UPI order: ' + error.message });
   }
 };
 
-// Verify payment and credit wallet
-exports.verifyPayment = async (req, res) => {
+// 2. Submit UTR / Reference Number after payment
+exports.submitUtr = async (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amount } = req.body;
+    const { orderId, utr } = req.body;
 
-    let razorpay;
-    try {
-      razorpay = getRazorpay();
-    } catch (e) {
-      return res.status(503).json({ message: e.message });
+    if (!orderId || !utr || utr.trim().length < 6) {
+      return res.status(400).json({ message: 'Please enter a valid 12-digit UPI UTR / Transaction Reference Number' });
     }
 
-    // Verify signature using HMAC SHA256
-    const body = razorpay_order_id + '|' + razorpay_payment_id;
-    const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-      .update(body.toString())
-      .digest('hex');
-
-    if (expectedSignature !== razorpay_signature) {
-      return res.status(400).json({ message: 'Payment verification failed. Invalid signature.' });
+    const order = await PaymentOrder.findOne({ orderId, userId: req.user._id });
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
     }
 
-    // Credit wallet — recharge money goes to balance but NOT withdrawableBalance
+    if (order.status === 'verified') {
+      return res.status(400).json({ message: 'This order is already verified and credited' });
+    }
+
+    // Check if this UTR was already used
+    const existingUtr = await PaymentOrder.findOne({ utr: utr.trim(), status: 'verified' });
+    if (existingUtr) {
+      return res.status(400).json({ message: 'This UTR has already been credited to another account' });
+    }
+
+    order.utr = utr.trim();
+    order.status = 'verified'; // Auto-verify and credit to wallet
+    order.verifiedAt = new Date();
+    await order.save();
+
+    // Credit wallet immediately
     const wallet = await Wallet.findOne({ userId: req.user._id });
-    if (!wallet) return res.status(404).json({ message: 'Wallet not found' });
-
-    const creditAmount = Number(amount) / 100; // convert paise back to rupees
-    wallet.balance   += creditAmount;
-    wallet.recharged += creditAmount;           // track recharged separately (non-withdrawable)
-    wallet.transactions.push({
-      type:        'credit',
-      amount:      creditAmount,
-      description: `Wallet Recharge via Razorpay (${razorpay_payment_id})`,
-    });
-    await wallet.save();
+    if (wallet) {
+      wallet.balance += order.amount;
+      wallet.recharged += order.amount;
+      wallet.transactions.push({
+        type: 'credit',
+        amount: order.amount,
+        description: `Solar Wallet Recharge via UPI (UTR: ${order.utr})`,
+        date: new Date(),
+      });
+      await wallet.save();
+    }
 
     res.json({
-      success:   true,
-      message:   `₹${creditAmount.toLocaleString('en-IN')} added to your wallet successfully!`,
-      balance:   wallet.balance,
-      paymentId: razorpay_payment_id,
+      success: true,
+      message: `₹${order.amount.toLocaleString('en-IN')} successfully added to your wallet!`,
+      balance: wallet?.balance || order.amount,
     });
   } catch (error) {
-    console.error('Payment verification error:', error.message);
-    res.status(500).json({ message: 'Payment verification failed' });
+    console.error('Submit UTR error:', error);
+    res.status(500).json({ message: 'Failed to verify transaction: ' + error.message });
   }
 };
+
+// 3. Fallback for Razorpay order (if still called anywhere)
+exports.createOrder = exports.createUpiOrder;
+exports.verifyPayment = exports.submitUtr;
