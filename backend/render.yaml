@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: investpro-backend
+    name: piano-invest-app
     env: node
     region: singapore
     plan: free
@@ -14,9 +14,9 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
-      - key: RAZORPAY_KEY_ID
-        sync: false
-      - key: RAZORPAY_KEY_SECRET
-        sync: false
+      - key: UPI_ID
+        value: 79062276slic.slc
+      - key: BRAND_NAME
+        value: Solar Wealth
       - key: CLIENT_URL
-        sync: false
+        value: "*"
