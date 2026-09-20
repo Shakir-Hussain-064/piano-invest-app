@@ -307,48 +307,39 @@ export default function WalletPage() {
                   </button>
                 </div>
 
-                {/* Dynamic QR — generated fresh, no bpsign, no risk warning */}
-                <div className="bg-white p-4 rounded-2xl border-2 border-amber-300 shadow-sm inline-block mx-auto">
-                  <QRCodeSVG
-                    value={activeOrder.upiUrl}
-                    size={210}
-                    level="M"
-                    includeMargin={true}
-                  />
-                  <p className="text-xs font-black text-slate-700 mt-2 flex items-center justify-center gap-1">
-                    <span>⚡</span> Scan with any UPI App
-                  </p>
-                  <p className="text-[11px] text-slate-400 font-semibold">
-                    Google Pay · PhonePe · Paytm · BHIM
-                  </p>
-                </div>
+                {/* QR Code — scan-only, no direct UPI ID buttons */}
+                <div className="space-y-3">
+                  <div className="bg-white p-4 rounded-2xl border-2 border-amber-400 shadow-md inline-block mx-auto">
+                    <QRCodeSVG
+                      value={activeOrder.upiUrl}
+                      size={220}
+                      level="M"
+                      includeMargin={true}
+                    />
+                  </div>
 
-                {/* Direct App Buttons for Mobile */}
-                <div className="grid grid-cols-2 gap-2">
-                  <a href={activeOrder.phonepeUrl || activeOrder.upiUrl}
-                    className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-3 rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-1.5">
-                    🟣 PhonePe
-                  </a>
-                  <a href={activeOrder.gpayUrl || activeOrder.upiUrl}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-3 rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-1.5">
-                    🔵 Google Pay
-                  </a>
-                  <a href={activeOrder.paytmUrl || activeOrder.upiUrl}
-                    className="bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-3 rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-1.5">
-                    🔷 Paytm
-                  </a>
-                  <a href={activeOrder.upiUrl}
-                    className="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-3 rounded-xl shadow-sm transition text-xs flex items-center justify-center gap-1.5">
-                    📱 Other UPI
-                  </a>
+                  {/* Scan instruction banner */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 text-left space-y-1">
+                    <p className="text-blue-800 font-black text-xs flex items-center gap-1.5">
+                      📷 Iss QR ko apne UPI app se scan karein
+                    </p>
+                    <p className="text-blue-700 text-[11px] font-medium leading-relaxed">
+                      PhonePe / GPay / Paytm open karein → <strong>"Scan QR"</strong> ya camera icon tap karein → Phone ka camera QR par point karein → ₹{Number(activeOrder.amount).toLocaleString('en-IN')} auto-fill ho jayega → Pay karein.
+                    </p>
+                  </div>
+
+                  <div className="bg-rose-50 border border-rose-200 rounded-xl px-3 py-2 text-left">
+                    <p className="text-rose-700 text-[11px] font-semibold">
+                      ⚠️ <strong>UPI ID manually type na karein</strong> — yeh QR-only merchant account hai. Sirf QR scan karke hi payment hogi.
+                    </p>
+                  </div>
                 </div>
-                <p className="text-[11px] text-slate-400">Mobile user? Tap your app button above to open directly</p>
 
                 {/* UTR Entry */}
                 <form onSubmit={handleSubmitUtr} className="space-y-3 pt-3 border-t border-slate-100 text-left">
                   <div>
-                    <label className="text-slate-800 text-xs font-black block mb-1">
-                      Payment Ref No (UTR) — 12 digits:
+                    <label className="text-slate-800 text-xs font-black block mb-1.5">
+                      Payment ke baad UTR / Ref No daalen (12 digits):
                     </label>
                     <input
                       type="text"
@@ -361,7 +352,7 @@ export default function WalletPage() {
                       className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 font-mono text-base tracking-widest font-bold shadow-inner"
                     />
                     <p className="text-[11px] text-slate-500 mt-1.5">
-                      💡 Payment ke baad PhonePe / GPay receipt me <strong>"UPI Ref No"</strong> ya <strong>"UTR"</strong> check karein.
+                      💡 PhonePe / GPay / Paytm payment receipt me <strong>"UPI Ref No"</strong> ya <strong>"UTR"</strong> milega.
                     </p>
                   </div>
 
