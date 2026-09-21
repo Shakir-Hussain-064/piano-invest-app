@@ -46,12 +46,42 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Admin: manually trigger daily earnings (protected by secret key)
+app.post('/api/admin/run-earnings', async (req, res) => {
+  const { secret } = req.body;
+  if (secret !== (process.env.ADMIN_SECRET || 'solarwealth_admin_2024')) {
+    return res.status(403).json({ message: 'Unauthorized' });
+  }
+  try {
+    const { creditDailyEarnings } = require('./cron/dailyEarnings');
+    await creditDailyEarnings();
+    res.json({ success: true, message: 'Daily earnings credited successfully' });
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/plans', planRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/payment', paymentRoutes);
+
+// Keep-alive: self-ping every 14 minutes to prevent Render free tier spin-down
+// This ensures the cron job keeps running even on free hosting
+const BACKEND_URL = process.env.BACKEND_URL || '';
+if (BACKEND_URL) {
+  setInterval(async () => {
+    try {
+      const https = require('https');
+      https.get(`${BACKEND_URL}/health`, (r) => {
+        console.log('[KEEP-ALIVE] Pinged /health →', r.statusCode);
+      }).on('error', () => {});
+    } catch (_) {}
+  }, 14 * 60 * 1000); // every 14 minutes
+  console.log('[KEEP-ALIVE] Self-ping enabled →', BACKEND_URL);
+}
 
 // Safe frontend serving (if dist exists)
 const frontendDist = path.join(__dirname, '../frontend/dist');
