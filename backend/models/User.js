@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, required: true },
   name: { type: String, default: '' },
+  role: { type: String, enum: ['user', 'admin'], default: 'user' },
   referralCode: { type: String, unique: true },
   referredBy: { type: String, default: null },
   createdAt: { type: Date, default: Date.now },

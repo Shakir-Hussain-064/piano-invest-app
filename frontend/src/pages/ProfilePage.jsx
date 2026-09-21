@@ -85,7 +85,7 @@ export default function ProfilePage() {
       {/* Menu Items */}
       <div className="mx-4 mt-4 space-y-2">
         {[
-          { icon: '👑', label: 'Owner Withdrawal Requests', action: () => navigate('/admin/withdrawals'), highlight: true },
+          ...(user?.role === 'admin' ? [{ icon: '👑', label: 'Owner Control Center', action: () => navigate('/admin/withdrawals'), highlight: true }] : []),
           { icon: '☀️', label: 'My Solar Plans', action: () => navigate('/plans') },
           { icon: '👛', label: 'Solar Wallet', action: () => navigate('/wallet') },
           { icon: '📞', label: 'Solar Help Support', action: () => { window.location.href = 'https://www.instagram.com/solar_wealth/'; } },

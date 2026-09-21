@@ -23,6 +23,7 @@ export default function WalletPage() {
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [payMethod, setPayMethod]           = useState('upi'); // 'upi' | 'bank'
   const [upiId, setUpiId]                   = useState('');
+  const [myWithdrawals, setMyWithdrawals]   = useState([]);
   const [bank, setBank]                     = useState({
     accountHolder: '', accountNumber: '', ifscCode: '', bankName: '',
   });
@@ -40,6 +41,10 @@ export default function WalletPage() {
         ifscCode:      data.bankAccount.ifscCode      || '',
         bankName:      data.bankAccount.bankName      || '',
       });
+
+      // Fetch user's own withdrawal requests
+      const wRes = await API.get('/wallet/my-withdrawals');
+      setMyWithdrawals(wRes.data || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -449,7 +454,44 @@ export default function WalletPage() {
               )}
             </button>
 
-            <p className="text-slate-400 text-xs text-center font-medium">Payout processing time: 1–3 business days directly to A/C</p>
+            <p className="text-slate-400 text-xs text-center font-medium">Payout processing: Owner transfers directly to your UPI/Bank within 24 hours</p>
+
+            {/* ── User's Withdrawal History & Status ──────── */}
+            {myWithdrawals && myWithdrawals.length > 0 && (
+              <div className="pt-4 border-t border-slate-200 text-left space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <p className="text-slate-900 font-extrabold text-xs uppercase tracking-wider">Your Cashout Requests</p>
+                  <span className="text-[11px] text-slate-400 font-bold">{myWithdrawals.length} Total</span>
+                </div>
+
+                {myWithdrawals.slice(0, 10).map((req) => (
+                  <div key={req._id} className="bg-white rounded-2xl p-3.5 border border-slate-200/90 shadow-sm flex items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-900 font-black text-sm">₹{req.amount.toLocaleString('en-IN')}</span>
+                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                          req.status === 'pending'
+                            ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                            : req.status === 'approved'
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                            : 'bg-rose-100 text-rose-800 border border-rose-200'
+                        }`}>
+                          {req.status === 'pending' ? '⏳ Pending Payout' : req.status === 'approved' ? '✅ Transferred' : '❌ Refunded'}
+                        </span>
+                      </div>
+                      <p className="text-slate-500 text-xs mt-1 font-medium">
+                        {req.method === 'upi' ? `UPI: ${req.upiId}` : `Bank: ${req.bankAccount?.bankName || 'A/C'} (****${req.bankAccount?.accountNumber?.slice(-4) || ''})`}
+                      </p>
+                      <p className="text-slate-400 text-[10px] mt-0.5">
+                        {new Date(req.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        {req.status === 'pending' && ' · Admin verification under process'}
+                        {req.status === 'approved' && ` · ${req.paymentRef || 'Paid'}`}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
