@@ -7,7 +7,7 @@ export default function SignupPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [form, setForm] = useState({ name: '', email: '', password: '', referralCode: '' });
-  const [captchaChecked, setCaptchaChecked] = useState(false);
+  const [captchaChecked, setCaptchaChecked] = useState(true);
   const [loading, setLoading]  = useState(false);
   const [error, setError]      = useState('');
   const [showPass, setShowPass] = useState(false);
@@ -17,15 +17,25 @@ export default function SignupPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!captchaChecked) { setError('Please verify the CAPTCHA'); return; }
-    if (form.password.length < 6) { setError('Password must be at least 6 characters'); return; }
+    if (!form.email || !form.email.includes('@')) {
+      setError('Please enter a valid email address');
+      return;
+    }
+    if (!form.password || form.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
     setLoading(true);
     try {
-      const { data } = await API.post('/auth/signup', { ...form, captchaVerified: true });
+      const { data } = await API.post('/auth/signup', {
+        ...form,
+        email: form.email.trim().toLowerCase(),
+        captchaVerified: true,
+      });
       login({ _id: data._id, email: data.email, name: data.name, referralCode: data.referralCode }, data.token);
       navigate('/home');
     } catch (err) {
-      setError(err.response?.data?.message || 'Signup failed. Please try again.');
+      setError(err.response?.data?.message || err.message || 'Signup failed. Please try again.');
     } finally {
       setLoading(false);
     }

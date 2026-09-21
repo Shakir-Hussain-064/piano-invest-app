@@ -8,31 +8,48 @@ const generateToken = (id) => {
 
 exports.signup = async (req, res) => {
   try {
-    const { email, password, name, referralCode, captchaVerified } = req.body;
+    const { email, password, name, referralCode } = req.body;
 
-    if (!captchaVerified) {
-      return res.status(400).json({ message: 'Please complete the CAPTCHA verification' });
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanPassword = (password || '').trim();
+    const cleanName = (name || '').trim();
+
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      return res.status(400).json({ message: 'Please enter a valid email address' });
     }
 
-    const existingUser = await User.findOne({ email });
+    if (!cleanPassword || cleanPassword.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+
+    const existingUser = await User.findOne({ email: cleanEmail });
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists with this email' });
+      return res.status(400).json({ message: 'An account with this email already exists. Please Sign In.' });
     }
 
     let referredBy = null;
     let hasValidReferral = false;
 
     if (referralCode && referralCode.trim()) {
-      const referrer = await User.findOne({ referralCode: referralCode.trim().toUpperCase() });
+      const cleanRef = referralCode.trim().toUpperCase();
+      const referrer = await User.findOne({ referralCode: cleanRef });
       if (referrer) {
         referredBy = referrer.referralCode;
         hasValidReferral = true;
       } else {
-        return res.status(400).json({ message: 'Invalid referral code entered. Please check or leave blank.' });
+        return res.status(400).json({ message: `Referral code "${cleanRef}" is invalid. Please remove it or enter a valid code.` });
       }
     }
 
-    const user = await User.create({ email, password, name, referredBy });
+    // Generate unique referral code
+    const uniqueRef = 'REF' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    const user = await User.create({
+      email: cleanEmail,
+      password: cleanPassword,
+      name: cleanName || cleanEmail.split('@')[0],
+      referralCode: uniqueRef,
+      referredBy,
+    });
 
     // Initial wallet balance: ₹100 Welcome Bonus if signed up with valid referral code
     const initialBalance = hasValidReferral ? 100 : 0;
@@ -69,7 +86,7 @@ exports.signup = async (req, res) => {
     });
   } catch (error) {
     console.error('Signup error:', error);
-    res.status(500).json({ message: 'Server error during signup' });
+    res.status(500).json({ message: error.message || 'Server error during signup. Please try again.' });
   }
 };
 
@@ -77,9 +94,30 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
-    if (!user || !(await user.matchPassword(password))) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanPassword = (password || '').trim();
+
+    if (!cleanEmail || !cleanPassword) {
+      return res.status(400).json({ message: 'Please enter both email and password' });
+    }
+
+    const user = await User.findOne({ email: cleanEmail });
+    if (!user || !(await user.matchPassword(cleanPassword))) {
+      return res.status(401).json({ message: 'Invalid email or password. Please check your credentials.' });
+    }
+
+    // Self-healing: ensure wallet always exists
+    let wallet = await Wallet.findOne({ userId: user._id });
+    if (!wallet) {
+      wallet = await Wallet.create({
+        userId: user._id,
+        balance: 0,
+        recharged: 0,
+        totalEarned: 0,
+        withdrawableBalance: 0,
+        totalWithdrawn: 0,
+        transactions: [],
+      });
     }
 
     res.json({
@@ -91,6 +129,6 @@ exports.login = async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error during login' });
+    res.status(500).json({ message: error.message || 'Server error during login. Please try again.' });
   }
 };

@@ -22,7 +22,7 @@ export default function LoginPage() {
       login({ _id: data._id, email: data.email, name: data.name, referralCode: data.referralCode }, data.token);
       navigate('/home');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || err.message || 'Login failed. Please check your credentials or try again in a few seconds.');
     } finally {
       setLoading(false);
     }
