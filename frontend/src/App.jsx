@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage';
 import PlansPage from './pages/PlansPage';
 import WalletPage from './pages/WalletPage';
 import ProfilePage from './pages/ProfilePage';
+import AdminWithdrawalsPage from './pages/AdminWithdrawalsPage';
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
@@ -24,6 +25,7 @@ function AppRoutes() {
       <Route path="/plans" element={<PrivateRoute><PlansPage /></PrivateRoute>} />
       <Route path="/wallet" element={<PrivateRoute><WalletPage /></PrivateRoute>} />
       <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+      <Route path="/admin/withdrawals" element={<PrivateRoute><AdminWithdrawalsPage /></PrivateRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

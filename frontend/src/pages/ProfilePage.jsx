@@ -85,21 +85,24 @@ export default function ProfilePage() {
       {/* Menu Items */}
       <div className="mx-4 mt-4 space-y-2">
         {[
+          { icon: '👑', label: 'Owner Withdrawal Requests', action: () => navigate('/admin/withdrawals'), highlight: true },
           { icon: '☀️', label: 'My Solar Plans', action: () => navigate('/plans') },
           { icon: '👛', label: 'Solar Wallet', action: () => navigate('/wallet') },
-          { icon: '🔔', label: 'Power Notifications', action: () => {} },
-          { icon: '🛡️', label: 'Account Security', action: () => {} },
           { icon: '📞', label: 'Solar Help Support', action: () => { window.location.href = 'https://www.instagram.com/solar_wealth/'; } },
           { icon: 'ℹ️', label: 'About SolarWealth', action: () => navigate('/home') },
         ].map((item) => (
           <button
             key={item.label}
             onClick={item.action}
-            className="w-full bg-white border border-slate-200/80 rounded-2xl p-4 flex items-center gap-4 hover:border-amber-300 shadow-sm transition-all text-left"
+            className={`w-full border rounded-2xl p-4 flex items-center gap-4 shadow-sm transition-all text-left ${
+              item.highlight
+                ? 'bg-amber-500 text-white border-amber-600 hover:bg-amber-600 shadow-amber-500/20'
+                : 'bg-white border-slate-200/80 text-slate-800 hover:border-amber-300'
+            }`}
           >
             <span className="text-xl">{item.icon}</span>
-            <span className="text-slate-800 text-sm font-bold flex-1">{item.label}</span>
-            <span className="text-slate-400">›</span>
+            <span className={`text-sm font-bold flex-1 ${item.highlight ? 'text-white font-black' : 'text-slate-800'}`}>{item.label}</span>
+            <span className={item.highlight ? 'text-amber-200' : 'text-slate-400'}>›</span>
           </button>
         ))}
       </div>
