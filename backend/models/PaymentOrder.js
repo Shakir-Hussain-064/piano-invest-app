@@ -41,4 +41,10 @@ const paymentOrderSchema = new mongoose.Schema({
   },
 });
 
+// Enforce database-level uniqueness for verified UTRs so no UTR can ever be used twice
+paymentOrderSchema.index(
+  { utr: 1 },
+  { unique: true, partialFilterExpression: { utr: { $gt: '' }, status: 'verified' } }
+);
+
 module.exports = mongoose.model('PaymentOrder', paymentOrderSchema);

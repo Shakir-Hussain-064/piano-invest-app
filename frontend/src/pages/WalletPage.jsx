@@ -85,8 +85,9 @@ export default function WalletPage() {
   // ── Step 2: Submit 12-digit UTR / Reference ID ────────────────
   const handleSubmitUtr = async (e) => {
     e.preventDefault();
-    if (!utrInput || utrInput.trim().length < 6) {
-      showMsg('Please enter a valid 12-digit UTR / UPI Reference Number from your payment app', 'error');
+    const clean = utrInput.trim().replace(/\s+/g, '');
+    if (!clean || clean.length < 10) {
+      showMsg('Please enter a valid 12-digit UPI UTR / Reference Number from your payment receipt', 'error');
       return;
     }
 
@@ -366,11 +367,16 @@ export default function WalletPage() {
                     <p className="text-[11px] text-slate-500 mt-1.5">
                       💡 PhonePe / GPay / Paytm payment receipt me <strong>"UPI Ref No"</strong> ya <strong>"UTR"</strong> milega.
                     </p>
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-left mt-2">
+                      <p className="text-amber-800 text-[11px] font-bold">
+                        🔒 <strong>One-Time Use:</strong> Har UTR sirf 1 baar use ho sakta hai. Duplicate ya already used UTR accept nahi hoga.
+                      </p>
+                    </div>
                   </div>
 
                   <button
                     type="submit"
-                    disabled={submittingUtr || !utrInput || utrInput.length < 6}
+                    disabled={submittingUtr || !utrInput || utrInput.length < 10}
                     className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-extrabold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm"
                   >
                     {submittingUtr ? (

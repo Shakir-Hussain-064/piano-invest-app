@@ -54,26 +54,53 @@ exports.submitUtr = async (req, res) => {
   try {
     const { orderId, utr } = req.body;
 
-    if (!orderId || !utr || utr.trim().length < 6) {
-      return res.status(400).json({ message: 'Please enter a valid 12-digit UPI UTR / Transaction Reference Number' });
+    if (!orderId || !utr) {
+      return res.status(400).json({ message: 'Order ID and UTR Number are required' });
+    }
+
+    // Clean and normalize UTR (remove spaces, uppercase)
+    const cleanUtr = utr.trim().replace(/\s+/g, '').toUpperCase();
+
+    if (cleanUtr.length < 10) {
+      return res.status(400).json({
+        message: 'Please enter a valid 12-digit UPI UTR / Transaction Reference Number (min 10 characters)',
+      });
     }
 
     const order = await PaymentOrder.findOne({ orderId, userId: req.user._id });
     if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+      return res.status(404).json({ message: 'Order not found or unauthorized' });
     }
 
     if (order.status === 'verified') {
-      return res.status(400).json({ message: 'This order is already verified and credited' });
+      return res.status(400).json({ message: 'This recharge order is already verified and credited to your wallet.' });
     }
 
-    // Check if this UTR was already used
-    const existingUtr = await PaymentOrder.findOne({ utr: utr.trim(), status: 'verified' });
-    if (existingUtr) {
-      return res.status(400).json({ message: 'This UTR has already been credited to another account' });
+    // ── STRICT ONE-TIME USE CHECK ──────────────────────────────
+    // 1. Check if this UTR has EVER been verified for ANY order in the database
+    const existingVerifiedOrder = await PaymentOrder.findOne({
+      utr: cleanUtr,
+      status: 'verified',
+    });
+
+    if (existingVerifiedOrder) {
+      return res.status(400).json({
+        message: '⚠️ This UTR has already been used and credited. Each UTR is one-time use only!',
+      });
     }
 
-    order.utr = utr.trim();
+    // 2. Double-check if any wallet transaction in the database already recorded this UTR
+    const existingWalletTx = await Wallet.findOne({
+      'transactions.description': { $regex: cleanUtr, $options: 'i' },
+    });
+
+    if (existingWalletTx) {
+      return res.status(400).json({
+        message: '⚠️ This UTR has already been credited in a previous transaction. Duplicate use is not allowed!',
+      });
+    }
+
+    order.utr = cleanUtr;
     order.status = 'verified'; // Auto-verify and credit to wallet
     order.verifiedAt = new Date();
     await order.save();
@@ -86,7 +113,7 @@ exports.submitUtr = async (req, res) => {
       wallet.transactions.push({
         type: 'credit',
         amount: order.amount,
-        description: `Solar Wallet Recharge via UPI (UTR: ${order.utr})`,
+        description: `Solar Wallet Recharge via UPI (UTR: ${cleanUtr})`,
         date: new Date(),
       });
       await wallet.save();
@@ -99,6 +126,12 @@ exports.submitUtr = async (req, res) => {
     });
   } catch (error) {
     console.error('Submit UTR error:', error);
+    // Handle MongoDB duplicate key error (E11000) gracefully
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message: '⚠️ Duplicate UTR detected: This UTR has already been used and cannot be submitted again.',
+      });
+    }
     res.status(500).json({ message: 'Failed to verify transaction: ' + error.message });
   }
 };
