@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import BottomNav from '../components/BottomNav';
@@ -16,6 +16,53 @@ export default function AdminWithdrawalsPage() {
   const [copiedId, setCopiedId] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
   const [message, setMessage] = useState({ text: '', type: '' });
+  const [notification, setNotification] = useState(null);
+
+  const prevPendingCountRef = useRef(null);
+
+  // Audio chime using Web Audio API when new withdrawal request arrives
+  const playNotificationChime = () => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime);       // D5
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);    // A5
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.6);
+    } catch (e) {
+      console.log('Chime error:', e);
+    }
+  };
+
+  const fetchWithdrawalsSilently = async (activePin = pin) => {
+    if (!activePin) return;
+    try {
+      const { data } = await API.get('/wallet/admin/withdrawals', {
+        headers: { 'x-admin-pin': activePin },
+      });
+      const newPending = data.filter(r => r.status === 'pending');
+      if (prevPendingCountRef.current !== null && newPending.length > prevPendingCountRef.current) {
+        playNotificationChime();
+        const latest = newPending[0];
+        setNotification({
+          text: `🔔 New Withdrawal Initiated! ₹${latest?.amount?.toLocaleString('en-IN')} requested by ${latest?.userName || latest?.userEmail}. Transfer pending.`,
+          time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        });
+      }
+      prevPendingCountRef.current = newPending.length;
+      setRequests(data);
+    } catch (err) {
+      // background silent fetch
+    }
+  };
 
   const fetchWithdrawals = async (activePin = pin) => {
     if (!activePin) return;
@@ -25,6 +72,8 @@ export default function AdminWithdrawalsPage() {
         headers: { 'x-admin-pin': activePin },
       });
       setRequests(data);
+      const pendingList = data.filter(r => r.status === 'pending');
+      prevPendingCountRef.current = pendingList.length;
       setIsUnlocked(true);
       sessionStorage.setItem('owner_pin', activePin);
       setPinError('');
@@ -47,6 +96,15 @@ export default function AdminWithdrawalsPage() {
     }
   }, [pin]);
 
+  // Polling: auto-check for new withdrawal requests every 10 seconds silently
+  useEffect(() => {
+    if (!pin || !isUnlocked) return;
+    const interval = setInterval(() => {
+      fetchWithdrawalsSilently(pin);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [pin, isUnlocked]);
+
   const handleUnlock = (e) => {
     e.preventDefault();
     if (!pinInput.trim()) {
@@ -63,6 +121,7 @@ export default function AdminWithdrawalsPage() {
     setPinInput('');
     setIsUnlocked(false);
     setRequests([]);
+    setNotification(null);
   };
 
   const handleCopy = (text, id) => {
@@ -72,15 +131,18 @@ export default function AdminWithdrawalsPage() {
   };
 
   const handleApprove = async (id) => {
-    const paymentRef = window.prompt('Enter Transfer Ref / UTR / Note (Optional):', 'Paid via UPI/Bank');
+    const paymentRef = window.prompt(
+      'Confirm amount transfer to user account:\nEnter UTR / UPI Reference No (or click OK to confirm):',
+      'Amount Transferred to Account'
+    );
     if (paymentRef === null) return;
 
     setActionLoading(id);
     try {
-      const { data } = await API.post(`/wallet/admin/withdrawals/${id}/approve`, { paymentRef }, {
+      const { data } = await API.post(`/wallet/admin/withdrawals/${id}/approve`, { paymentRef: paymentRef || 'Amount Transferred to Account' }, {
         headers: { 'x-admin-pin': pin },
       });
-      setMessage({ text: data.message || 'Withdrawal marked as approved!', type: 'success' });
+      setMessage({ text: '✅ Amount marked as Transferred to user account successfully!', type: 'success' });
       fetchWithdrawals(pin);
     } catch (err) {
       setMessage({ text: err.response?.data?.message || 'Failed to approve', type: 'error' });
@@ -178,6 +240,25 @@ export default function AdminWithdrawalsPage() {
       ) : (
         /* UNLOCKED DASHBOARD */
         <>
+          {/* Real-time New Withdrawal Notification Banner */}
+          {notification && (
+            <div className="mx-4 mt-3 bg-amber-500 text-white rounded-2xl p-4 shadow-lg flex items-start justify-between gap-3 border-2 border-amber-300">
+              <div className="flex items-start gap-2.5">
+                <span className="text-2xl">🔔</span>
+                <div>
+                  <p className="font-black text-sm">{notification.text}</p>
+                  <p className="text-[10px] text-amber-100 font-semibold mt-0.5">Received at {notification.time}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setNotification(null)}
+                className="bg-white/20 hover:bg-white/30 text-white rounded-lg px-2 py-1 text-xs font-black"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           {/* Message Toast */}
           {message.text && (
             <div className={`mx-4 mt-3 p-3 rounded-2xl text-xs font-bold flex items-center justify-between shadow-sm ${
@@ -238,7 +319,7 @@ export default function AdminWithdrawalsPage() {
                             ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                             : 'bg-rose-100 text-rose-800 border border-rose-200'
                         }`}>
-                          {req.status}
+                          {req.status === 'pending' ? '⏳ Pending' : req.status === 'approved' ? '✅ Transferred' : '❌ Refunded'}
                         </span>
                       </div>
                       <p className="text-slate-400 text-xs font-mono">{req.userEmail}</p>
@@ -305,8 +386,9 @@ export default function AdminWithdrawalsPage() {
 
                   {/* Status info if already processed */}
                   {req.status === 'approved' && (
-                    <p className="text-[11px] text-emerald-700 bg-emerald-50 p-2 rounded-xl border border-emerald-200 font-medium">
-                      ✓ Paid & Approved: {req.paymentRef || 'Transferred by Admin'} ({req.processedAt ? new Date(req.processedAt).toLocaleDateString('en-IN') : ''})
+                    <p className="text-[11px] text-emerald-800 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 font-semibold flex items-center gap-1.5">
+                      <span>✅</span>
+                      <span><strong>Status: Transferred to Account</strong> · {req.paymentRef || 'Amount Transferred'} ({req.processedAt ? new Date(req.processedAt).toLocaleDateString('en-IN') : ''})</span>
                     </p>
                   )}
                   {req.status === 'rejected' && (
@@ -321,9 +403,9 @@ export default function AdminWithdrawalsPage() {
                       <button
                         onClick={() => handleApprove(req._id)}
                         disabled={actionLoading === req._id}
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 px-4 rounded-xl shadow-md transition text-xs flex items-center justify-center gap-1.5 disabled:opacity-50"
+                        className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold py-3 px-4 rounded-xl shadow-md transition text-xs flex items-center justify-center gap-1.5 disabled:opacity-50"
                       >
-                        {actionLoading === req._id ? 'Processing...' : '✓ Mark Paid / Approved'}
+                        {actionLoading === req._id ? 'Processing...' : '💸 Mark as Transferred to Account'}
                       </button>
                       <button
                         onClick={() => handleReject(req._id)}

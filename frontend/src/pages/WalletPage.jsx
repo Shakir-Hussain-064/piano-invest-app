@@ -28,7 +28,14 @@ export default function WalletPage() {
     accountHolder: '', accountNumber: '', ifscCode: '', bankName: '',
   });
 
-  useEffect(() => { fetchWallet(); }, []);
+  useEffect(() => {
+    fetchWallet();
+    // Auto-poll wallet & withdrawal requests every 10 seconds so status updates live
+    const interval = setInterval(() => {
+      fetchWallet();
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchWallet = async () => {
     try {
@@ -114,7 +121,7 @@ export default function WalletPage() {
     setWithdrawing(true);
     try {
       const { data } = await API.post('/wallet/withdraw', { amount: amt, bankDetails });
-      showMsg(data.message, 'success');
+      showMsg(`Withdrawal of ₹${amt.toLocaleString('en-IN')} initiated! Amount has been deducted from your wallet. Status: Pending until owner transfers funds to your account.`, 'success');
       setWithdrawAmount('');
       fetchWallet();
     } catch (err) {
@@ -388,6 +395,9 @@ export default function WalletPage() {
                 <p className="text-emerald-700 text-xs mt-0.5">
                   Available to withdraw: <span className="text-emerald-900 font-black">₹{(wallet?.withdrawableBalance || 0).toLocaleString('en-IN')}</span> (Min ₹1,000)
                 </p>
+                <p className="text-emerald-800 text-[11px] mt-1 font-medium">
+                  ⚡ <em>Amount will be deducted from your wallet immediately. Status remains <strong>Pending</strong> until the owner transfers funds to your account, after which status changes to <strong>Transferred</strong>.</em>
+                </p>
               </div>
             </div>
 
@@ -469,14 +479,14 @@ export default function WalletPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-slate-900 font-black text-sm">₹{req.amount.toLocaleString('en-IN')}</span>
-                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                        <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${
                           req.status === 'pending'
                             ? 'bg-amber-100 text-amber-800 border border-amber-200'
                             : req.status === 'approved'
                             ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                             : 'bg-rose-100 text-rose-800 border border-rose-200'
                         }`}>
-                          {req.status === 'pending' ? '⏳ Pending Payout' : req.status === 'approved' ? '✅ Transferred' : '❌ Refunded'}
+                          {req.status === 'pending' ? '⏳ Pending' : req.status === 'approved' ? '✅ Transferred' : '❌ Refunded'}
                         </span>
                       </div>
                       <p className="text-slate-500 text-xs mt-1 font-medium">
@@ -484,8 +494,9 @@ export default function WalletPage() {
                       </p>
                       <p className="text-slate-400 text-[10px] mt-0.5">
                         {new Date(req.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                        {req.status === 'pending' && ' · Admin verification under process'}
-                        {req.status === 'approved' && ` · ${req.paymentRef || 'Paid'}`}
+                        {req.status === 'pending' && ' · ⏳ Amount deducted from wallet · Transfer under process by owner'}
+                        {req.status === 'approved' && ` · 🎉 Status: Transferred to your account (${req.paymentRef || 'Transferred'})`}
+                        {req.status === 'rejected' && ` · ❌ Cancelled: ${req.adminNote || 'Amount refunded back to wallet'}`}
                       </p>
                     </div>
                   </div>

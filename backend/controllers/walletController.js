@@ -74,8 +74,8 @@ exports.withdraw = async (req, res) => {
       type: 'debit',
       amount: numAmount,
       description: hasUpi
-        ? `Withdrawal Request Placed (UPI: ${upiId.trim()})`
-        : `Withdrawal Request Placed (${bankName} - A/C: ****${accountNumber.slice(-4)})`,
+        ? `Withdrawal Initiated (Pending) · UPI: ${upiId.trim()}`
+        : `Withdrawal Initiated (Pending) · ${bankName} A/C: ****${accountNumber.slice(-4)}`,
       date: new Date(),
     });
 
@@ -160,12 +160,31 @@ exports.approveWithdrawalAdmin = async (req, res) => {
     }
 
     request.status = 'approved';
-    request.paymentRef = paymentRef || 'Transferred by Admin';
+    request.paymentRef = paymentRef || 'Amount Transferred to Account';
     request.adminNote = adminNote || '';
     request.processedAt = new Date();
     await request.save();
 
-    res.json({ success: true, message: 'Withdrawal marked as completed/paid successfully!', request });
+    // Update corresponding debit transaction in user's wallet to mark Transferred
+    try {
+      const userWallet = await Wallet.findOne({ userId: request.userId });
+      if (userWallet && userWallet.transactions) {
+        const tx = userWallet.transactions
+          .slice()
+          .reverse()
+          .find(t => t.type === 'debit' && t.amount === request.amount && t.description.includes('Withdrawal'));
+        if (tx) {
+          tx.description = request.method === 'upi'
+            ? `✅ Amount Transferred to Account · UPI: ${request.upiId}`
+            : `✅ Amount Transferred to Account · ${request.bankAccount?.bankName} (****${request.bankAccount?.accountNumber?.slice(-4) || ''})`;
+          await userWallet.save();
+        }
+      }
+    } catch (txErr) {
+      console.error('Error updating user wallet transaction on approve:', txErr);
+    }
+
+    res.json({ success: true, message: 'Withdrawal marked as Amount Transferred to Account!', request });
   } catch (error) {
     res.status(500).json({ message: 'Error approving withdrawal: ' + error.message });
   }
