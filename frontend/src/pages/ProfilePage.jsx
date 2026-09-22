@@ -88,7 +88,7 @@ export default function ProfilePage() {
           ...(user?.role === 'admin' ? [{ icon: '👑', label: 'Owner Control Center', action: () => navigate('/admin/withdrawals'), highlight: true }] : []),
           { icon: '☀️', label: 'My Solar Plans', action: () => navigate('/plans') },
           { icon: '👛', label: 'Solar Wallet', action: () => navigate('/wallet') },
-          { icon: '📞', label: 'Solar Help Support', action: () => { window.location.href = 'https://www.instagram.com/solar_wealth/'; } },
+          { icon: '✈️', label: 'Solar Help Support (Telegram)', action: () => { window.open('https://t.me/solar_wealth', '_blank'); } },
           { icon: 'ℹ️', label: 'About SolarWealth', action: () => navigate('/home') },
         ].map((item) => (
           <button

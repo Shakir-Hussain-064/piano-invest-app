@@ -7,6 +7,7 @@ import PlansPage from './pages/PlansPage';
 import WalletPage from './pages/WalletPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminWithdrawalsPage from './pages/AdminWithdrawalsPage';
+import DisclaimerModal from './components/DisclaimerModal';
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
@@ -17,17 +18,20 @@ function PrivateRoute({ children }) {
 function AppRoutes() {
   const { user } = useAuth();
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to={user ? '/home' : '/login'} replace />} />
-      <Route path="/signup" element={user ? <Navigate to="/home" /> : <SignupPage />} />
-      <Route path="/login" element={user ? <Navigate to="/home" /> : <LoginPage />} />
-      <Route path="/home" element={<PrivateRoute><HomePage /></PrivateRoute>} />
-      <Route path="/plans" element={<PrivateRoute><PlansPage /></PrivateRoute>} />
-      <Route path="/wallet" element={<PrivateRoute><WalletPage /></PrivateRoute>} />
-      <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
-      <Route path="/admin/withdrawals" element={<PrivateRoute><AdminWithdrawalsPage /></PrivateRoute>} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <DisclaimerModal />
+      <Routes>
+        <Route path="/" element={<Navigate to={user ? '/home' : '/login'} replace />} />
+        <Route path="/signup" element={user ? <Navigate to="/home" /> : <SignupPage />} />
+        <Route path="/login" element={user ? <Navigate to="/home" /> : <LoginPage />} />
+        <Route path="/home" element={<PrivateRoute><HomePage /></PrivateRoute>} />
+        <Route path="/plans" element={<PrivateRoute><PlansPage /></PrivateRoute>} />
+        <Route path="/wallet" element={<PrivateRoute><WalletPage /></PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+        <Route path="/admin/withdrawals" element={<PrivateRoute><AdminWithdrawalsPage /></PrivateRoute>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }
 
