@@ -320,8 +320,8 @@ export default function WalletPage() {
                   </button>
                 </div>
 
-                {/* QR Code — scan-only, no direct UPI ID buttons */}
-                <div className="space-y-3">
+                {/* QR Code */}
+                <div>
                   <div className="bg-white p-4 rounded-2xl border-2 border-amber-400 shadow-md inline-block mx-auto">
                     <QRCodeSVG
                       value={activeOrder.upiUrl}
@@ -329,22 +329,6 @@ export default function WalletPage() {
                       level="M"
                       includeMargin={true}
                     />
-                  </div>
-
-                  {/* Scan instruction banner */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 text-left space-y-1">
-                    <p className="text-blue-800 font-black text-xs flex items-center gap-1.5">
-                      📷 Iss QR ko apne UPI app se scan karein
-                    </p>
-                    <p className="text-blue-700 text-[11px] font-medium leading-relaxed">
-                      PhonePe / GPay / Paytm open karein → <strong>"Scan QR"</strong> ya camera icon tap karein → Phone ka camera QR par point karein → ₹{Number(activeOrder.amount).toLocaleString('en-IN')} auto-fill ho jayega → Pay karein.
-                    </p>
-                  </div>
-
-                  <div className="bg-rose-50 border border-rose-200 rounded-xl px-3 py-2 text-left">
-                    <p className="text-rose-700 text-[11px] font-semibold">
-                      ⚠️ <strong>UPI ID manually type na karein</strong> — yeh QR-only merchant account hai. Sirf QR scan karke hi payment hogi.
-                    </p>
                   </div>
                 </div>
 
@@ -367,11 +351,6 @@ export default function WalletPage() {
                     <p className="text-[11px] text-slate-500 mt-1.5">
                       💡 PhonePe / GPay / Paytm payment receipt me <strong>"UPI Ref No"</strong> ya <strong>"UTR"</strong> milega.
                     </p>
-                    <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-left mt-2">
-                      <p className="text-amber-800 text-[11px] font-bold">
-                        🔒 <strong>One-Time Use:</strong> Har UTR sirf 1 baar use ho sakta hai. Duplicate ya already used UTR accept nahi hoga.
-                      </p>
-                    </div>
                   </div>
 
                   <button
