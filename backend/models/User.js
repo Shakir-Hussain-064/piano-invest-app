@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   referralCode: { type: String, unique: true },
   referredBy: { type: String, default: null },
   createdAt: { type: Date, default: Date.now },
+  lastLogin: { type: Date, default: Date.now },
 });
 
 userSchema.pre('save', async function (next) {

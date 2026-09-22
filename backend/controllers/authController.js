@@ -50,6 +50,7 @@ exports.signup = async (req, res) => {
       name: cleanName || cleanEmail.split('@')[0],
       referralCode: uniqueRef,
       referredBy,
+      lastLogin: new Date(),
     });
 
     // Initial wallet balance: ₹100 Welcome Bonus if signed up with valid referral code
@@ -143,8 +144,11 @@ exports.login = async (req, res) => {
     const isOwner = cleanEmail === 'owner@solarwealth.com' || cleanEmail === 'shakirhusain2021@gmail.com' || user.role === 'admin';
     if (isOwner && user.role !== 'admin') {
       user.role = 'admin';
-      await user.save();
     }
+
+    // Track lastLogin timestamp
+    user.lastLogin = new Date();
+    await user.save();
 
     // Self-healing: ensure wallet always exists
     let wallet = await Wallet.findOne({ userId: user._id });

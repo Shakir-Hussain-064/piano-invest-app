@@ -10,12 +10,23 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [ownerStats, setOwnerStats] = useState(null);
+
+  const isOwner = user?.role === 'admin' || user?.email === 'owner@solarwealth.com' || user?.email === 'shakirhusain2021@gmail.com';
 
   useEffect(() => {
     API.get('/profile').then(res => {
       setProfile(res.data);
     }).catch(console.error).finally(() => setLoading(false));
-  }, []);
+
+    if (isOwner) {
+      API.get('/wallet/admin/users-analytics', {
+        headers: { 'x-admin-pin': '7906' }
+      }).then(res => {
+        setOwnerStats(res.data);
+      }).catch(console.error);
+    }
+  }, [isOwner]);
 
   const handleLogout = () => {
     logout();
@@ -82,10 +93,51 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* Owner Analytics Summary Card (Shown only to Owner) */}
+      {isOwner && (
+        <div className="mx-4 mt-4 bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 rounded-3xl p-5 text-white shadow-xl">
+          <div className="flex items-center justify-between mb-3 border-b border-white/20 pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">👑</span>
+              <h3 className="font-black text-base">Owner Live Analytics</h3>
+            </div>
+            <span className="bg-white/20 text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
+              Live Monitor
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 text-slate-900 mb-3">
+            <div className="bg-white rounded-2xl p-3 shadow-sm text-center">
+              <span className="text-[10px] text-slate-400 font-bold uppercase block">Total Users</span>
+              <span className="text-xl font-black text-slate-900">{ownerStats?.summary?.totalUsers || 0}</span>
+            </div>
+            <div className="bg-white rounded-2xl p-3 shadow-sm text-center">
+              <span className="text-[10px] text-slate-400 font-bold uppercase block">Total Recharged</span>
+              <span className="text-base font-black text-emerald-700">₹{(ownerStats?.summary?.totalRecharged || 0).toLocaleString('en-IN')}</span>
+            </div>
+            <div className="bg-white rounded-2xl p-3 shadow-sm text-center">
+              <span className="text-[10px] text-slate-400 font-bold uppercase block">Total Balances</span>
+              <span className="text-xs font-black text-amber-700">₹{(ownerStats?.summary?.totalBalance || 0).toLocaleString('en-IN')}</span>
+            </div>
+            <div className="bg-white rounded-2xl p-3 shadow-sm text-center">
+              <span className="text-[10px] text-slate-400 font-bold uppercase block">Active Units</span>
+              <span className="text-xs font-black text-orange-700">{ownerStats?.summary?.totalActivePlans || 0} Units</span>
+            </div>
+          </div>
+
+          <button
+            onClick={() => navigate('/admin/withdrawals')}
+            className="w-full bg-white text-slate-900 font-extrabold py-3 rounded-xl shadow-md hover:bg-amber-50 transition text-xs flex items-center justify-center gap-2"
+          >
+            <span>👥</span> View Registered Users & Recharges Directory →
+          </button>
+        </div>
+      )}
+
       {/* Menu Items */}
       <div className="mx-4 mt-4 space-y-2">
         {[
-          ...(user?.role === 'admin' ? [{ icon: '👑', label: 'Owner Control Center', action: () => navigate('/admin/withdrawals'), highlight: true }] : []),
+          ...(isOwner ? [{ icon: '👑', label: 'Owner Panel & User Analytics', action: () => navigate('/admin/withdrawals'), highlight: true }] : []),
           { icon: '☀️', label: 'My Solar Plans', action: () => navigate('/plans') },
           { icon: '👛', label: 'Solar Wallet', action: () => navigate('/wallet') },
           { icon: '✈️', label: 'Solar Help Support (Telegram)', action: () => { window.open('https://t.me/solar_wealth', '_blank'); } },

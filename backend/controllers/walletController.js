@@ -1,6 +1,7 @@
 const Wallet = require('../models/Wallet');
 const User = require('../models/User');
 const WithdrawalRequest = require('../models/WithdrawalRequest');
+const ActivePlan = require('../models/ActivePlan');
 
 exports.getWallet = async (req, res) => {
   try {
@@ -242,5 +243,87 @@ exports.saveBankDetails = async (req, res) => {
     res.json({ message: 'Bank details saved successfully!', bankAccount: wallet.bankAccount });
   } catch (error) {
     res.status(500).json({ message: 'Error saving bank details' });
+  }
+};
+
+// Admin/Owner: Fetch all registered users with real-time analytics & recharge data
+exports.getUsersAnalyticsAdmin = async (req, res) => {
+  try {
+    const isAuthorized = req.user?.role === 'admin' || verifyAdminPin(req);
+    if (!isAuthorized) {
+      return res.status(403).json({ message: 'Owner access only. Access denied.' });
+    }
+
+    const users = await User.find().select('-password').sort({ createdAt: -1 });
+    const wallets = await Wallet.find();
+    const activePlans = await ActivePlan.find({ isComplete: false });
+
+    // Map wallets by userId
+    const walletMap = {};
+    wallets.forEach(w => {
+      if (w.userId) walletMap[w.userId.toString()] = w;
+    });
+
+    // Map active plans count & total investment by userId
+    const plansMap = {};
+    activePlans.forEach(p => {
+      if (!p.userId) return;
+      const uId = p.userId.toString();
+      if (!plansMap[uId]) {
+        plansMap[uId] = { count: 0, invested: 0 };
+      }
+      plansMap[uId].count += 1;
+      plansMap[uId].invested += (p.investedAmount || 0);
+    });
+
+    let totalPlatformRecharged = 0;
+    let totalPlatformBalance = 0;
+    let totalPlatformWithdrawn = 0;
+
+    const userDirectory = users.map(u => {
+      const w = walletMap[u._id.toString()];
+      const p = plansMap[u._id.toString()] || { count: 0, invested: 0 };
+      const recharged = w?.recharged || 0;
+      const balance = w?.balance || 0;
+      const totalWithdrawn = w?.totalWithdrawn || 0;
+      const totalEarned = w?.totalEarned || 0;
+      const withdrawableBalance = w?.withdrawableBalance || 0;
+
+      totalPlatformRecharged += recharged;
+      totalPlatformBalance += balance;
+      totalPlatformWithdrawn += totalWithdrawn;
+
+      return {
+        _id: u._id,
+        name: u.name || 'Solar Investor',
+        email: u.email,
+        role: u.role,
+        referralCode: u.referralCode,
+        referredBy: u.referredBy,
+        createdAt: u.createdAt,
+        lastLogin: u.lastLogin || u.createdAt,
+        rechargedAmount: recharged,
+        balance: balance,
+        totalEarned: totalEarned,
+        totalWithdrawn: totalWithdrawn,
+        withdrawableBalance: withdrawableBalance,
+        activePlansCount: p.count,
+        totalInvested: p.invested,
+      };
+    });
+
+    res.json({
+      summary: {
+        totalUsers: users.length,
+        totalRecharged: totalPlatformRecharged,
+        totalBalance: totalPlatformBalance,
+        totalWithdrawn: totalPlatformWithdrawn,
+        totalActivePlans: activePlans.length,
+      },
+      users: userDirectory,
+    });
+  } catch (error) {
+    console.error('Error in getUsersAnalyticsAdmin:', error);
+    res.status(500).json({ message: 'Error fetching users analytics: ' + error.message });
   }
 };
