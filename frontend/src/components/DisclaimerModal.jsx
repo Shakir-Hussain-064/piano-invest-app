@@ -6,18 +6,15 @@ export default function DisclaimerModal() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
+    // Har page refresh aur login par disclaimer modal khulega
     if (user) {
-      const accepted = sessionStorage.getItem('disclaimer_accepted');
-      if (!accepted) {
-        setIsOpen(true);
-      }
+      setIsOpen(true);
     } else {
       setIsOpen(false);
     }
   }, [user]);
 
   const handleUnderstand = () => {
-    sessionStorage.setItem('disclaimer_accepted', 'true');
     setIsOpen(false);
   };
 
