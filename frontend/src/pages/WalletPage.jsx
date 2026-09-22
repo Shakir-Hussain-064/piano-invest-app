@@ -380,9 +380,6 @@ export default function WalletPage() {
                 <p className="text-emerald-700 text-xs mt-0.5">
                   Available to withdraw: <span className="text-emerald-900 font-black">₹{(wallet?.withdrawableBalance || 0).toLocaleString('en-IN')}</span> (Min ₹1,000)
                 </p>
-                <p className="text-emerald-800 text-[11px] mt-1 font-medium">
-                  ⚡ <em>Amount will be deducted from your wallet immediately. Status remains <strong>Pending</strong> until the owner transfers funds to your account, after which status changes to <strong>Transferred</strong>.</em>
-                </p>
               </div>
             </div>
 
