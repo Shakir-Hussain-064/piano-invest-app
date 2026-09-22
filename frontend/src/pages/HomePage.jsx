@@ -20,7 +20,7 @@ const stats = [
 
 const steps = [
   { step: '01', title: 'Recharge Energy Wallet', desc: 'Add investment capital securely via GPay, PhonePe, Paytm, or UPI QR.', icon: '💳', color: '#D97706', bg: '#FEF3C7' },
-  { step: '02', title: 'Select Solar Plan',      desc: 'Choose your solar capacity from ₹500 (Solar Spark) to ₹25,000 (Mega Plant).', icon: '☀️', color: '#EA580C', bg: '#FFEDD5' },
+  { step: '02', title: 'Select Solar Plan',      desc: 'Choose your solar capacity from ₹500 (Solar Spark) to ₹50,000 (VIP Megawatt Empire).', icon: '☀️', color: '#EA580C', bg: '#FFEDD5' },
   { step: '03', title: 'Daily Power Earnings',   desc: 'Your solar units produce power daily and credit returns every midnight.', icon: '⚡', color: '#059669', bg: '#D1FAE5' },
   { step: '04', title: 'Withdraw Profits',       desc: 'Cash out your accumulated green energy profits into your Bank or UPI.', icon: '🏦', color: '#2563EB', bg: '#DBEAFE' },
 ];
@@ -78,7 +78,7 @@ export default function HomePage() {
         <div
           className="rounded-2xl p-2.5 flex justify-between items-center shadow-lg border border-amber-200 bg-white"
         >
-          {['500W', '1kW', '2.5kW', '5kW', '10kW', '20kW', '25kW'].map((cell, i) => (
+          {['500W', '1kW', '2.5kW', '5kW', '10kW', '20kW', '50kW'].map((cell, i) => (
             <div
               key={i}
               onClick={() => navigate('/plans')}
@@ -318,7 +318,7 @@ export default function HomePage() {
         >
           <span className="text-3xl block mb-1">☀️</span>
           <p className="text-slate-900 font-extrabold text-base">Start Your Solar Investment Today</p>
-          <p className="text-amber-600 text-xs font-bold mt-1">Select from ₹500 up to ₹25,000 · Guaranteed 60-Day Profits</p>
+          <p className="text-amber-600 text-xs font-bold mt-1">Select from ₹500 up to ₹50,000 · Guaranteed 60-Day Profits</p>
         </button>
       </div>
 

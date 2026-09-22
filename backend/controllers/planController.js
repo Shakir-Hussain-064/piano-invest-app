@@ -9,14 +9,13 @@ const PLANS = [
   { id: 'gold',     name: '☀️ Solar Grid 5000',         investedAmount: 5000,  dailyEarn: 1000, totalReturn: 60000,  totalDays: 60, isVip: false },
   { id: 'platinum', name: '☀️ Solar Station 10000',     investedAmount: 10000, dailyEarn: 2000, totalReturn: 120000, totalDays: 60, isVip: false },
   { id: 'diamond',  name: '☀️ Solar Park 20000',        investedAmount: 20000, dailyEarn: 4000, totalReturn: 240000, totalDays: 60, isVip: false },
-  { id: 'elite',    name: '☀️ Mega Solar Plant 25000',  investedAmount: 25000, dailyEarn: 5000, totalReturn: 300000, totalDays: 60, isVip: false },
 
   // ── VIP Solar Mega Plans (Accelerated High Yield · 60 Days) ──────────────────
-  { id: 'vip-silver',   name: '⚡ VIP Solar SuperGrid',     investedAmount: 2500,  dailyEarn: 750,   totalReturn: 45000,  totalDays: 60, isVip: true },
-  { id: 'vip-gold',     name: '⚡ VIP Solar UltraPlant',    investedAmount: 5000,  dailyEarn: 1600,  totalReturn: 96000,  totalDays: 60, isVip: true },
-  { id: 'vip-platinum', name: '⚡ VIP Solar PowerHub',      investedAmount: 10000, dailyEarn: 3500,  totalReturn: 210000, totalDays: 60, isVip: true },
-  { id: 'vip-diamond',  name: '⚡ VIP Solar InfinityGig',   investedAmount: 20000, dailyEarn: 7500,  totalReturn: 450000, totalDays: 60, isVip: true },
-  { id: 'vip-elite',    name: '⚡ VIP Gigawatt SolarEmpire',investedAmount: 25000, dailyEarn: 10000, totalReturn: 600000, totalDays: 60, isVip: true },
+  { id: 'vip-20k',  name: '⚡ VIP Solar SuperGrid 20K',     investedAmount: 20000, dailyEarn: 6000,  totalReturn: 360000,  totalDays: 60, isVip: true },
+  { id: 'vip-25k',  name: '⚡ VIP Solar UltraPlant 25K',    investedAmount: 25000, dailyEarn: 8000,  totalReturn: 480000,  totalDays: 60, isVip: true },
+  { id: 'vip-30k',  name: '⚡ VIP Solar PowerHub 30K',      investedAmount: 30000, dailyEarn: 10000, totalReturn: 600000,  totalDays: 60, isVip: true },
+  { id: 'vip-40k',  name: '⚡ VIP Solar InfinityGig 40K',   investedAmount: 40000, dailyEarn: 15000, totalReturn: 900000,  totalDays: 60, isVip: true },
+  { id: 'vip-50k',  name: '⚡ VIP Gigawatt Empire 50K',     investedAmount: 50000, dailyEarn: 20000, totalReturn: 1200000, totalDays: 60, isVip: true },
 ];
 
 exports.getPlans = (req, res) => {

@@ -124,7 +124,7 @@ export default function WalletPage() {
     }
   };
 
-  const quickAmounts = [500, 1000, 2500, 5000, 10000, 15000];
+  const quickAmounts = [500, 1000, 2500, 5000, 10000, 20000, 25000, 30000, 50000];
   const txIcon  = (t) => ({ credit: '💳', earning: '☀️', debit: '🏦' }[t] || '💳');
   const txBg    = (t) => ({ credit: 'bg-blue-50 border border-blue-200 text-blue-700', earning: 'bg-emerald-50 border border-emerald-200 text-emerald-700', debit: 'bg-rose-50 border border-rose-200 text-rose-700' }[t]);
   const txColor = (t) => (t === 'debit' ? 'text-rose-600' : 'text-emerald-600');
