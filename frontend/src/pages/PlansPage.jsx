@@ -55,7 +55,7 @@ export default function PlansPage() {
           <h1 className="text-xl font-extrabold text-slate-900 flex items-center gap-1.5">
             <span>☀️</span> Solar Plans
           </h1>
-          <p className="text-amber-600 font-bold text-xs mt-0.5">3× Guaranteed Returns (300% ROI)</p>
+          <p className="text-amber-600 font-bold text-xs mt-0.5">60 Days Solar Cycles · Daily Power Dividends</p>
         </div>
         <div className="text-right">
           <p className="text-slate-400 text-xs font-semibold">Wallet Balance</p>
@@ -83,7 +83,7 @@ export default function PlansPage() {
             activeTab === 'standard' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          ☀️ Standard 3×
+          ☀️ Standard (60D)
         </button>
         <button
           onClick={() => setActiveTab('vip')}
@@ -169,7 +169,7 @@ export default function PlansPage() {
                       <p className="text-emerald-700 font-extrabold text-sm">₹{plan.earnedSoFar.toLocaleString()}</p>
                     </div>
                     <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-200/60">
-                      <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Total 3× Return</p>
+                      <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Total Return</p>
                       <p className="text-amber-700 font-black text-sm">₹{plan.totalReturn.toLocaleString()}</p>
                     </div>
                   </div>

@@ -40,7 +40,7 @@ export default function PlanCard({ plan, onBuy, walletBalance }) {
           </span>
         </div>
         <div className="flex justify-between items-center text-xs border-t border-slate-200 pt-2">
-          <span className="text-slate-700 font-semibold">Total 3× Return</span>
+          <span className="text-slate-700 font-semibold">Total Profit Return</span>
           <span className="font-black text-amber-600 text-base">₹{plan.totalReturn.toLocaleString()}</span>
         </div>
       </div>

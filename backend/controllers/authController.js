@@ -29,10 +29,11 @@ exports.signup = async (req, res) => {
 
     let referredBy = null;
     let hasValidReferral = false;
+    let referrer = null;
 
     if (referralCode && referralCode.trim()) {
       const cleanRef = referralCode.trim().toUpperCase();
-      const referrer = await User.findOne({ referralCode: cleanRef });
+      referrer = await User.findOne({ referralCode: cleanRef });
       if (referrer) {
         referredBy = referrer.referralCode;
         hasValidReferral = true;
@@ -62,16 +63,37 @@ exports.signup = async (req, res) => {
         }]
       : [];
 
-    // Create wallet for user
+    // Create wallet for new user
     await Wallet.create({
       userId: user._id,
       balance: initialBalance,
       recharged: 0,
-      totalEarned: 0,
-      withdrawableBalance: 0,
+      totalEarned: hasValidReferral ? 100 : 0,
+      withdrawableBalance: hasValidReferral ? 100 : 0,
       totalWithdrawn: 0,
       transactions: initialTransactions,
     });
+
+    // Credit referral reward to the referrer (BOTH sides get ₹100 bonus)
+    if (hasValidReferral && referrer) {
+      try {
+        const referrerWallet = await Wallet.findOne({ userId: referrer._id });
+        if (referrerWallet) {
+          referrerWallet.balance += 100;
+          referrerWallet.totalEarned += 100;
+          referrerWallet.withdrawableBalance = (referrerWallet.withdrawableBalance || 0) + 100;
+          referrerWallet.transactions.push({
+            type: 'credit',
+            amount: 100,
+            description: `🎁 Referral Reward (Friend joined: ${user.name || user.email})`,
+            date: new Date(),
+          });
+          await referrerWallet.save();
+        }
+      } catch (refErr) {
+        console.error('Error crediting referrer bonus:', refErr);
+      }
+    }
 
     res.status(201).json({
       _id: user._id,

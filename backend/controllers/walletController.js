@@ -29,8 +29,8 @@ exports.withdraw = async (req, res) => {
     const { amount, bankDetails } = req.body;
     const numAmount = Number(amount);
 
-    if (!numAmount || numAmount < 500) {
-      return res.status(400).json({ message: 'Minimum withdrawal amount is ₹500' });
+    if (!numAmount || numAmount < 1000) {
+      return res.status(400).json({ message: 'Minimum withdrawal amount is ₹1,000' });
     }
 
     if (!bankDetails) {

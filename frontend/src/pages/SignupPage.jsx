@@ -52,7 +52,7 @@ export default function SignupPage() {
           ☀️
         </div>
         <h1 className="text-3xl font-black text-slate-900 tracking-tight">SolarWealth</h1>
-        <p className="text-slate-500 text-xs mt-1 font-medium">Invest in green energy & earn 3× daily returns</p>
+        <p className="text-slate-500 text-xs mt-1 font-medium">Invest in green energy & earn high daily returns</p>
       </div>
 
       {/* Card */}

@@ -105,7 +105,7 @@ export default function WalletPage() {
   // ── Withdraw ──────────────────────────────────────────────────
   const handleWithdraw = async () => {
     const amt = Number(withdrawAmount);
-    if (!amt || amt < 500) { showMsg('Minimum withdrawal is ₹500', 'error'); return; }
+    if (!amt || amt < 1000) { showMsg('Minimum withdrawal is ₹1,000', 'error'); return; }
 
     const bankDetails = payMethod === 'upi'
       ? { upiId }
@@ -386,7 +386,7 @@ export default function WalletPage() {
               <div>
                 <p className="text-emerald-900 font-extrabold text-sm">Solar Profit Cashout</p>
                 <p className="text-emerald-700 text-xs mt-0.5">
-                  Available to withdraw: <span className="text-emerald-900 font-black">₹{(wallet?.withdrawableBalance || 0).toLocaleString('en-IN')}</span> (Min ₹500)
+                  Available to withdraw: <span className="text-emerald-900 font-black">₹{(wallet?.withdrawableBalance || 0).toLocaleString('en-IN')}</span> (Min ₹1,000)
                 </p>
               </div>
             </div>
@@ -396,7 +396,7 @@ export default function WalletPage() {
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
                 <input type="number" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)}
-                  placeholder="Min ₹500"
+                  placeholder="Min ₹1,000"
                   className="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 transition shadow-sm font-semibold" />
               </div>
             </div>
