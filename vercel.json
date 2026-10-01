@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://piano-api.onrender.com/api/:path*"
+      "destination": "https://piano-invest-app-1.onrender.com/"
     },
     {
       "source": "/owner",
