@@ -48,12 +48,9 @@ app.use('/api',rateLimit({windowMs:60000,limit:150,standardHeaders:'draft-8',leg
 app.get('/api/config',(req,res)=>{req.session.csrf ||=randomBytes(24).toString('hex');res.json({csrf:req.session.csrf,policyVersion:POLICY_VERSION,payoutsConfigured:false,withdrawRequestsEnabled:/^[a-f0-9]{64}$/i.test(process.env.BANK_DATA_KEY||''),qrPayment,plans});});
 app.use('/api',(req,res,next)=>{if(!['GET','HEAD'].includes(req.method)&&(!req.session.csrf||req.headers['x-csrf-token']!==req.session.csrf))return res.status(403).json({error:'Session expired. Refresh the page.'});next();});
 const authLimiter=rateLimit({windowMs:15*60000,limit:30,standardHeaders:'draft-8',legacyHeaders:false});
-app.get('/api/captcha',(req,res)=>{const a=2+Math.floor(Math.random()*8),b=2+Math.floor(Math.random()*8);req.session.captcha={answer:String(a+b),expires:Date.now()+300000};res.json({question:`${a} + ${b}`});});
 const credentials=z.object({email:z.email().max(120).transform(s=>s.toLowerCase().trim()),password:z.string().min(8).max(100)});
 app.post('/api/signup',authLimiter,async(req,res,next)=>{try{
- const data=credentials.extend({name:z.string().trim().min(2).max(60),referral:z.string().max(30).optional(),captcha:z.string()}).parse(req.body);
- const captcha=req.session.captcha;delete req.session.captcha;
- if(!captcha||captcha.expires<Date.now()||data.captcha.trim()!==captcha.answer)throw new Error('Captcha expired or incorrect. Try a new one.');
+ const data=credentials.extend({name:z.string().trim().min(2).max(60),referral:z.string().max(30).optional()}).parse(req.body);
  if(!data.email.endsWith('@gmail.com'))throw new Error('Please use a Gmail address.');
  let ref;if(data.referral?.trim()){ref=await User.findOne({referralCode:data.referral.trim().toUpperCase(),moneyMode:'live'});if(!ref)throw new Error('Referral code not found.');}
  const u=new User({...freshAccount(data.email,data.name),moneyMode,passwordHash:await bcrypt.hash(data.password,12),referredBy:ref?.referralCode});

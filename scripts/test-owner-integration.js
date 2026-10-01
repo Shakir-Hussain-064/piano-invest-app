@@ -18,7 +18,7 @@ function client(){let cookie='',csrf='';return async(route,body,expected=200,wit
  if(expected!==null)assert.equal(r.status,expected,`${route}: ${JSON.stringify(d)}`);return {...d,httpStatus:r.status};
 };}
 const password='Local-integration-only!29';
-async function register(c,email){await c('/config');const {question}=await c('/captcha');const captcha=String(question.split(' + ').map(Number).reduce((a,b)=>a+b));await c('/signup',{name:'Integration User',email,password,captcha,role:'owner'},201);const login=await c('/login',{email,password});assert.equal(login.policyAcknowledged,false);await c('/payments/claims',{amount:50000,utr:'999999999999',requestId:randomUUID()},403);await c('/policy/acknowledge',{version:'2026-09-26.1',accepted:false},400);await c('/policy/acknowledge',{version:'2026-09-26.1',accepted:true});return login.user;}
+async function register(c,email){await c('/config');await c('/signup',{name:'Integration User',email,password,role:'owner'},201);const login=await c('/login',{email,password});assert.equal(login.policyAcknowledged,false);await c('/payments/claims',{amount:50000,utr:'999999999999',requestId:randomUUID()},403);await c('/policy/acknowledge',{version:'2026-09-26.1',accepted:false},400);await c('/policy/acknowledge',{version:'2026-09-26.1',accepted:true});return login.user;}
 try{
  await mongoose.connect(uri.toString());await start();const a=client(),owner=client();
  const ua=await register(a,'member@gmail.com'),uo=await register(owner,'owner@gmail.com');
