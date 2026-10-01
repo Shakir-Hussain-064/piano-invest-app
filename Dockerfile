@@ -1,6 +1,5 @@
 FROM node:22-bookworm-slim
 WORKDIR /app
-ENV MONGOMS_DISABLE_POSTINSTALL=1
 COPY package*.json ./
 RUN npm ci --no-audit --no-fund
 COPY . .

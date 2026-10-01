@@ -1,10 +1,10 @@
+export const MIN_WITHDRAWAL=100000; // Integer paise: ₹1,000.
 export const DAY = 86400000;
 export const OFFSET = 19800000;
 export const istDay = (time = Date.now()) => Math.floor((time + OFFSET) / DAY);
-export const plans = [500,1000,2500,5000,10000].map((price,i)=>({id:`piano-${price}`,name:['Prelude','Harmony','Melody','Symphony','Maestro'][i],price:price*100,daily:price*10,total:price*200,days:20,vip:false})).concat([
-  {id:'vip-5000',name:'Virtuoso',price:500000,daily:75000,total:1500000,days:20,vip:true},
-  {id:'vip-10000',name:'Grand Maestro',price:1000000,daily:150000,total:3000000,days:20,vip:true}
-]);
+export const plans = [500,1000,2500,5000,10000].map((price,i)=>({id:`piano-${price}`,name:['Prelude','Harmony','Melody','Symphony','Maestro'][i],price:price*100,daily:price*20,total:price*1200,days:60,vip:false})).concat(
+  [10000,25000,30000,40000].map((price,i)=>({id:`vip-${price}`,name:['Virtuoso','Grand Maestro','Concerto','Opus'][i],price:price*100,daily:price*30,total:price*1800,days:60,vip:true}))
+);
 export function freshAccount(email,name){return {email,name,referralCode:'PN'+crypto.randomUUID().replaceAll('-','').slice(0,8).toUpperCase(),wallet:0,totalEarned:0,investments:[],transactions:[],withdrawals:[],orders:[]};}
 export function transaction(user,type,amount,note,now=Date.now(),id=crypto.randomUUID()) {user.transactions.unshift({id,type,amount,note,at:now});}
 export function settle(user,now=Date.now()) {
@@ -29,18 +29,32 @@ export function buy(user,planId,now=Date.now(),requestId=crypto.randomUUID()){
 }
 export function withdraw(user,amount,bank,now=Date.now(),requestId=crypto.randomUUID()){
   if(user.transactions.some(t=>t.id===requestId))return;
-  if(!Number.isSafeInteger(amount)||amount<50000)throw new Error('Minimum withdrawal is ₹500.');
+  if(!Number.isSafeInteger(amount)||amount<MIN_WITHDRAWAL)throw new Error('Minimum withdrawal is ₹1,000.');
   if(amount>user.wallet)throw new Error('Insufficient wallet balance.');
   validateBank(bank);
-  user.wallet-=amount;user.withdrawals.unshift({id:requestId,amount,bank:{name:bank.name,ifsc:bank.ifsc,last4:bank.accountNumber.slice(-4)},status:'pending',at:now,refunded:false});
-  transaction(user,'withdrawal',-amount,`Bank withdrawal · account ending ${bank.accountNumber.slice(-4)}`,now,requestId);
+  const method=bank.method==='upi'?'upi':'bank';
+  const destination=method==='upi'?{name:bank.name,upiMasked:bank.upi.slice(0,2)+'***@'+bank.upi.split('@')[1]}:{name:bank.name,ifsc:bank.ifsc,last4:bank.accountNumber.slice(-4)};
+  user.wallet-=amount;user.withdrawals.unshift({id:requestId,amount,method,bank:destination,status:'pending',at:now,refunded:false});
+  transaction(user,'withdrawal',-amount,`${method==='upi'?'UPI':'Bank'} withdrawal requested`,now,requestId);
 }
 export function validateBank(bank){
  if(!bank||typeof bank.name!=='string'||bank.name.trim().length<2||bank.name.length>100)throw new Error('Enter the account holder name.');
+ if(bank.method==='upi'){if(typeof bank.upi!=='string'||!/^[-a-zA-Z0-9._]{2,256}@[a-zA-Z]{2,64}$/.test(bank.upi))throw new Error('Enter a valid UPI ID.');return;}
  if(!/^\d{9,18}$/.test(bank.accountNumber))throw new Error('Enter a bank account number with 9–18 digits.');
  if(!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(bank.ifsc))throw new Error('Enter a valid 11-character IFSC code.');
 }
 export const refundStatuses=['failed','reversed','cancelled','rejected'];
+export function reviewWithdrawal(user,id,decision,ownerId,note,now=Date.now()){
+ const w=user.withdrawals.find(w=>w.id===id);if(!w)throw new Error('Withdrawal not found.');
+ if(decision==='initiate'&&w.ownerApprovedAt)return;
+ if(decision==='reject'&&w.status==='rejected'&&w.refunded)return;
+ if(w.ownerApprovedAt||w.payoutId||w.payoutBody||w.refunded||!['awaiting_owner','pending'].includes(w.status))throw new Error('This withdrawal is already being processed or is closed.');
+ w.reviewedBy=String(ownerId);w.reviewedAt=now;w.reviewNote=note;
+ if(decision==='initiate'){w.ownerApprovedAt=now;w.status='pending';}
+ else if(decision==='reject'){w.status='rejected';w.refunded=true;user.wallet+=w.amount;transaction(user,'refund',w.amount,'Withdrawal rejected · balance restored',now,`refund-${w.id}`);}
+ else throw new Error('Invalid withdrawal decision.');
+ const t=user.transactions.find(t=>t.id===id);if(t)t.note=decision==='initiate'?'Withdrawal authorized by owner · queued':'Withdrawal rejected by owner';
+}
 export function applyPayoutState(user,requestId,payout,now=Date.now()){
  const w=user.withdrawals.find(w=>w.id===requestId);if(!w)throw new Error('Withdrawal not found.');
  if(payout.amount!==w.amount||payout.currency!=='INR'||payout.reference_id!==w.id||payout.fund_account_id!==w.fundAccountId)throw new Error('Payout does not match the reserved withdrawal.');
@@ -54,12 +68,5 @@ export function applyPayoutState(user,requestId,payout,now=Date.now()){
   w.refunded=true;user.wallet+=w.amount;
   transaction(user,'refund',w.amount,`Withdrawal ${payout.status} · balance restored`,now,`refund-${w.id}`);
  }
- const t=user.transactions.find(t=>t.id===w.id);if(t)t.note=`Bank withdrawal · ${w.status} · ending ${w.bank.last4}`;
-}
-export function creditOrder(user,orderId,payment){
-  const order=user.orders.find(o=>o.id===orderId);if(!order)throw new Error('Recharge order not found.');
-  if(payment.order_id!==order.id||payment.amount!==order.amount||payment.currency!=='INR'||payment.status!=='captured')throw new Error('Payment is not captured or does not match this order.');
-  if(order.credited)return false;
-  order.credited=true;order.paymentId=payment.id;user.wallet+=order.amount;
-  transaction(user,'recharge',order.amount,'Razorpay recharge confirmed',Date.now(),`payment-${order.id}`);return true;
+ const t=user.transactions.find(t=>t.id===w.id);if(t)t.note=`${w.method==='upi'?'UPI':'Bank'} withdrawal · ${w.status} · ${w.bank.upiMasked||'ending '+w.bank.last4}`;
 }
