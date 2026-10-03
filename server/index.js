@@ -150,5 +150,7 @@ let running=false;
 async function accrue(){if(running)return;running=true;try{await rechargeService.recover();await referralService.recover();for await(const u of User.find({moneyMode,'investments.0':{$exists:true}}).select('_id').cursor()){await mutate(u.id,()=>{});}
 }catch(e){console.error('Worker:',e.message);}finally{running=false;}}
 const timer=setInterval(accrue,15000);timer.unref();await accrue();
-const server=app.listen(process.env.PORT||3001,process.env.HOST||'127.0.0.1',()=>console.log(`Piano API http://127.0.0.1:${process.env.PORT||3001}`));
+const port=process.env.PORT||3001;
+const host=process.env.HOST||'0.0.0.0';
+const server=app.listen(port,host,()=>console.log(`Piano API listening on ${host}:${port}`));
 async function stop(){clearInterval(timer);server.close();await mongoose.disconnect();process.exit(0);}process.on('SIGINT',stop);process.on('SIGTERM',stop);
