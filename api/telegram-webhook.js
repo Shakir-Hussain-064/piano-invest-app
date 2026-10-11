@@ -111,29 +111,28 @@ async function sendPlanInvoice(chatId, plan, appUserId = 'guest') {
 }
 
 async function sendPlansMenu(chatId, appUserId = 'guest') {
-  let msg = `☀️ *WELCOME TO SOLAR WEALTH INVESTMENT PLANS!*\n\n`;
-  msg += `Aap Telegram Stars ⭐ se koi bhi plan buy kar sakte hain. Buy karte hi aapko ek *Unique Code* milega jise app me enter karke aapke wallet me money add ho jayegi!\n\n`;
+  let msg = `☀️ *SOLAR WEALTH PLANS*\n\n`;
+  msg += `Plan buy karne ke liye niche diye gaye button par click karein:\n\n`;
 
-  msg += `📋 *STANDARD PLANS (60 Days · 12x Return):*\n`;
   const standardPlans = PLANS.filter((p) => !p.isVip);
   standardPlans.forEach((p) => {
-    msg += `• *${p.name}*: ₹${p.investedAmount.toLocaleString('en-IN')} (${p.starsAmount} ⭐) → Earn ₹${p.dailyEarn}/day\n`;
+    msg += `• *${p.name}*\n  💰 ₹${p.investedAmount.toLocaleString('en-IN')} (${p.starsAmount} ⭐) | Daily ₹${p.dailyEarn}\n\n`;
   });
 
-  msg += `\n⚡ *VIP MEGA PLANS (High Yield):*\n`;
   const vipPlans = PLANS.filter((p) => p.isVip);
+  msg += `⚡ *VIP PLANS:*\n`;
   vipPlans.forEach((p) => {
-    msg += `• *${p.name}*: ₹${p.investedAmount.toLocaleString('en-IN')} (${p.starsAmount} ⭐) → Earn ₹${p.dailyEarn}/day\n`;
+    msg += `• *${p.name}*\n  💰 ₹${p.investedAmount.toLocaleString('en-IN')} (${p.starsAmount} ⭐) | Daily ₹${p.dailyEarn}\n\n`;
   });
 
-  msg += `\n👇 *Niche diye gaye buttons se plan select karein aur buy karein:*`;
+  msg += `👇 *Apna plan select karein aur turant buy karein:*`;
 
   const buttons = [];
   standardPlans.forEach((p) => {
-    buttons.push([{ text: `${p.name} — ${p.starsAmount} ⭐ (₹${p.investedAmount.toLocaleString('en-IN')})`, callback_data: `buy_${p.id}_${appUserId}` }]);
+    buttons.push([{ text: `💳 Buy ${p.name} — ${p.starsAmount} ⭐`, callback_data: `buy_${p.id}_${appUserId}` }]);
   });
   vipPlans.forEach((p) => {
-    buttons.push([{ text: `${p.name} — ${p.starsAmount} ⭐ (₹${p.investedAmount.toLocaleString('en-IN')})`, callback_data: `buy_${p.id}_${appUserId}` }]);
+    buttons.push([{ text: `⚡ Buy ${p.name} — ${p.starsAmount} ⭐`, callback_data: `buy_${p.id}_${appUserId}` }]);
   });
 
   return sendMessage(chatId, msg, { inline_keyboard: buttons });
