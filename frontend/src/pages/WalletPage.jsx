@@ -303,6 +303,34 @@ export default function WalletPage() {
                   </div>
                 </div>
 
+                {/* Quick Amount Select & Direct Redirect to Bot */}
+                <div>
+                  <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Select Amount to Recharge (Opens Bot)</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[500, 1000, 2500, 5000, 10000, 20000].map((amt) => {
+                      const stars = Math.ceil(amt / 2);
+                      return (
+                        <button
+                          key={amt}
+                          onClick={() => {
+                            setRechargeAmount(String(amt));
+                            const matched = SOLAR_PLANS.find((p) => p.investedAmount === amt);
+                            if (matched) {
+                              handleBuyPlanTelegram(matched);
+                            } else {
+                              handleOpenTelegram();
+                            }
+                          }}
+                          className="py-3 px-2 rounded-xl text-center border border-slate-200 bg-white hover:border-amber-400 hover:bg-amber-50/50 shadow-sm transition"
+                        >
+                          <p className="font-black text-sm text-slate-900">₹{amt >= 1000 ? `${amt / 1000}K` : amt}</p>
+                          <p className="text-[11px] font-bold text-amber-600 mt-0.5">{stars} ⭐ Stars</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {/* Plans Category Switcher */}
                 <div className="flex bg-slate-100 rounded-xl p-1 gap-1">
                   <button
@@ -448,7 +476,7 @@ export default function WalletPage() {
                 <form onSubmit={handleVerifyStarCode} className="space-y-4 pt-2 border-t border-slate-100 text-left">
                   <div>
                     <label className="text-slate-800 text-xs font-black block mb-1.5">
-                      🔑 Enter Unique Verification Code from Bot:
+                      🔑 Bot se mila Unique Code / UTR daalen:
                     </label>
                     <input
                       type="text"
@@ -460,7 +488,7 @@ export default function WalletPage() {
                       className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 font-mono text-lg tracking-widest font-black shadow-inner uppercase text-center"
                     />
                     <p className="text-[11px] text-slate-400 mt-1.5 text-center">
-                      Code is generated automatically by @SolarWealthBot after Stars payment.
+                      Telegram bot me Stars payment successful hone ke baad bot aapko ye unique code bhejta hai.
                     </p>
                   </div>
 
@@ -472,7 +500,7 @@ export default function WalletPage() {
                     {verifyingCode ? (
                       <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Verifying Code…</>
                     ) : (
-                      <><span>✓</span> Verify Code & Add to Wallet</>
+                      <><span>✓</span> Submit Code & Add ₹{starOrder ? Number(starOrder.amount).toLocaleString('en-IN') : 'Amount'} to Wallet</>
                     )}
                   </button>
                 </form>
