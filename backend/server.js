@@ -76,19 +76,21 @@ app.use('/api/wallet', walletRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/payment', paymentRoutes);
 
-// Keep-alive: self-ping every 14 minutes to prevent Render free tier spin-down
-// This ensures the cron job keeps running even on free hosting
-const BACKEND_URL = process.env.BACKEND_URL || '';
-if (BACKEND_URL) {
-  setInterval(async () => {
+// Keep-alive: self-ping every 10 minutes to prevent Render free tier spin-down
+// This ensures the bot and server stay awake 24/7 even when idle
+const BACKEND_URL = process.env.BACKEND_URL || 'https://piano-invest-app.onrender.com';
+if (BACKEND_URL && !BACKEND_URL.includes('localhost')) {
+  setInterval(() => {
     try {
       const https = require('https');
       https.get(`${BACKEND_URL}/health`, (r) => {
         console.log('[KEEP-ALIVE] Pinged /health →', r.statusCode);
-      }).on('error', () => {});
+      }).on('error', (e) => {
+        console.log('[KEEP-ALIVE] Ping error:', e.message);
+      });
     } catch (_) {}
-  }, 14 * 60 * 1000); // every 14 minutes
-  console.log('[KEEP-ALIVE] Self-ping enabled →', BACKEND_URL);
+  }, 10 * 60 * 1000); // every 10 minutes
+  console.log('[KEEP-ALIVE] Self-ping 24/7 enabled →', BACKEND_URL);
 }
 
 // Safe frontend serving (if dist exists)
