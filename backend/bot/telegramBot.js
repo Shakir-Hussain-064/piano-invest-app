@@ -116,8 +116,9 @@ async function sendPlansMenu(chatId, appUserId = 'guest') {
 
 // Handle single update
 async function handleUpdate(update) {
-  // 1. Message handler
-  if (update.message) {
+  try {
+    // 1. Message handler
+    if (update.message) {
     const msg = update.message;
     const chatId = msg.chat.id;
     const text = (msg.text || '').trim();
