@@ -85,44 +85,76 @@ export default function WalletPage() {
   };
 
   // ── Step 1: Open Telegram Bot for Plan / Star Payment ────────
-  const handleBuyPlanTelegram = async (plan) => {
-    setOpeningTelegram(true);
+  const handleBuyPlanTelegram = (plan) => {
+    const appUserId = user?._id || 'guest';
+    const stars = plan.starsAmount || Math.ceil(plan.investedAmount / 2);
+    const botUsername = 'SolarWealthBot';
+    const telegramUrl = `https://t.me/${botUsername}?start=plan_${plan.id}_${appUserId}`;
+
+    setStarOrder({
+      telegramUrl,
+      botUsername,
+      amount: plan.investedAmount,
+      starsAmount: stars,
+      planId: plan.id,
+      planName: plan.name,
+    });
+    setStarCodeInput('');
+
+    // Open Telegram immediately to avoid browser popup blocker
     try {
-      const { data } = await API.post('/payment/telegram-order', {
-        amount: plan.investedAmount,
-        planId: plan.id,
-      });
-      setStarOrder({
-        ...data,
-        planName: plan.name,
-      });
-      setStarCodeInput('');
-      window.open(data.telegramUrl, '_blank');
-      showMsg(`Telegram opened! Buy ${plan.name} for ${plan.starsAmount} ⭐ Stars in @${data.botUsername}. Enter your verification code below.`, 'success');
-    } catch (err) {
-      showMsg(err.response?.data?.message || 'Could not open Telegram recharge', 'error');
-    } finally {
-      setOpeningTelegram(false);
+      const win = window.open(telegramUrl, '_blank');
+      if (!win || win.closed || typeof win.closed === 'undefined') {
+        window.location.href = telegramUrl;
+      }
+    } catch (_) {
+      window.location.href = telegramUrl;
     }
+
+    showMsg(`Telegram opened! Buy ${plan.name} for ${stars} ⭐ Stars in @${botUsername}. Enter your verification code below.`, 'success');
+
+    // Fire background call to backend (non-blocking)
+    API.post('/payment/telegram-order', {
+      amount: plan.investedAmount,
+      planId: plan.id,
+    }).catch(() => {});
   };
 
-  const handleOpenTelegram = async () => {
+  const handleOpenTelegram = () => {
     const amt = Number(rechargeAmount);
     if (!amt || amt < 200) { showMsg('Minimum recharge amount is ₹200', 'error'); return; }
 
-    setOpeningTelegram(true);
+    const stars = Math.ceil(amt / 2);
+    const appUserId = user?._id || 'guest';
+    const botUsername = 'SolarWealthBot';
+    const matched = SOLAR_PLANS.find((p) => p.investedAmount === amt);
+    const deepLink = matched ? `plan_${matched.id}_${appUserId}` : `recharge_${stars}_${appUserId}`;
+    const telegramUrl = `https://t.me/${botUsername}?start=${deepLink}`;
+
+    setStarOrder({
+      telegramUrl,
+      botUsername,
+      amount: amt,
+      starsAmount: stars,
+      planId: matched ? matched.id : '',
+      planName: matched ? matched.name : `Solar Recharge ₹${amt.toLocaleString('en-IN')}`,
+    });
+    setStarCodeInput('');
+
+    // Open Telegram immediately to avoid browser popup blocker
     try {
-      const { data } = await API.post('/payment/telegram-order', { amount: amt });
-      setStarOrder(data);
-      setStarCodeInput('');
-      // Open Telegram deep link in new window / app
-      window.open(data.telegramUrl, '_blank');
-      showMsg(`Telegram opened! Pay ${data.starsAmount} ⭐ Stars in @${data.botUsername} and enter the received code below.`, 'success');
-    } catch (err) {
-      showMsg(err.response?.data?.message || 'Could not open Telegram recharge', 'error');
-    } finally {
-      setOpeningTelegram(false);
+      const win = window.open(telegramUrl, '_blank');
+      if (!win || win.closed || typeof win.closed === 'undefined') {
+        window.location.href = telegramUrl;
+      }
+    } catch (_) {
+      window.location.href = telegramUrl;
     }
+
+    showMsg(`Telegram opened! Pay ${stars} ⭐ Stars in @${botUsername} and enter the received code below.`, 'success');
+
+    // Fire background call to backend (non-blocking)
+    API.post('/payment/telegram-order', { amount: amt }).catch(() => {});
   };
 
   // ── Step 2: Verify Unique Code Received from Bot ─────────────
@@ -145,7 +177,12 @@ export default function WalletPage() {
       fetchWallet();
       setActiveTab('overview');
     } catch (err) {
-      showMsg(err.response?.data?.message || 'Verification failed. Please check the code.', 'error');
+      const msg = err.response?.data?.message || err.message;
+      if (err.response?.status === 404) {
+        showMsg('Backend deployment in progress on Render. Please retry in 30 seconds or check code: ' + clean, 'error');
+      } else {
+        showMsg(msg || 'Verification failed. Please check the code.', 'error');
+      }
     } finally {
       setVerifyingCode(false);
     }
