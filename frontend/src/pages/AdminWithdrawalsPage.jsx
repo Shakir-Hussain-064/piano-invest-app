@@ -19,10 +19,16 @@ export default function AdminWithdrawalsPage() {
   const [notification, setNotification] = useState(null);
 
   // Users Directory & Analytics state
-  const [dashboardTab, setDashboardTab] = useState('withdrawals'); // 'withdrawals' | 'users'
+  const [dashboardTab, setDashboardTab] = useState('withdrawals'); // 'withdrawals' | 'starcodes' | 'users'
   const [usersData, setUsersData] = useState({ summary: {}, users: [] });
   const [usersLoading, setUsersLoading] = useState(false);
   const [userSearch, setUserSearch] = useState('');
+
+  // Telegram Star Payments & Unique Codes state
+  const [starData, setStarData] = useState({ summary: {}, payments: [] });
+  const [starLoading, setStarLoading] = useState(false);
+  const [starSearch, setStarSearch] = useState('');
+  const [starFilter, setStarFilter] = useState('all'); // 'all' | 'pending' | 'verified'
 
   const prevPendingCountRef = useRef(null);
 
@@ -111,20 +117,38 @@ export default function AdminWithdrawalsPage() {
     }
   };
 
+  const fetchStarPayments = async (activePin = pin) => {
+    if (!activePin) return;
+    setStarLoading(true);
+    try {
+      const { data } = await API.get('/wallet/admin/star-payments', {
+        headers: { 'x-admin-pin': activePin },
+      });
+      setStarData(data);
+    } catch (err) {
+      console.error('Error loading star payments:', err);
+    } finally {
+      setStarLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (pin) {
       fetchWithdrawals(pin);
       fetchUsersAnalytics(pin);
+      fetchStarPayments(pin);
     }
   }, [pin]);
 
-  // Polling: auto-check for new withdrawal requests and users every 10 seconds silently
+  // Polling: auto-check for new withdrawal requests, users, and star payments every 10 seconds silently
   useEffect(() => {
     if (!pin || !isUnlocked) return;
     const interval = setInterval(() => {
       fetchWithdrawalsSilently(pin);
       if (dashboardTab === 'users') {
         fetchUsersAnalytics(pin);
+      } else if (dashboardTab === 'starcodes') {
+        fetchStarPayments(pin);
       }
     }, 10000);
     return () => clearInterval(interval);
@@ -136,9 +160,11 @@ export default function AdminWithdrawalsPage() {
       setPinError('Please enter Owner PIN');
       return;
     }
-    setPin(pinInput.trim());
-    fetchWithdrawals(pinInput.trim());
-    fetchUsersAnalytics(pinInput.trim());
+    const cleanPin = pinInput.trim();
+    setPin(cleanPin);
+    fetchWithdrawals(cleanPin);
+    fetchUsersAnalytics(cleanPin);
+    fetchStarPayments(cleanPin);
   };
 
   const handleLock = () => {
@@ -206,6 +232,19 @@ export default function AdminWithdrawalsPage() {
       (u.email && u.email.toLowerCase().includes(q)) ||
       (u.referralCode && u.referralCode.toLowerCase().includes(q)) ||
       (u.referredBy && u.referredBy.toLowerCase().includes(q))
+    );
+  });
+
+  const filteredStarPayments = (starData.payments || []).filter((p) => {
+    if (starFilter !== 'all' && p.status !== starFilter) return false;
+    if (!starSearch.trim()) return true;
+    const q = starSearch.toLowerCase();
+    return (
+      (p.code && p.code.toLowerCase().includes(q)) ||
+      (p.telegramUsername && p.telegramUsername.toLowerCase().includes(q)) ||
+      (p.telegramUserId && p.telegramUserId.toLowerCase().includes(q)) ||
+      (p.redeemedByUserEmail && p.redeemedByUserEmail.toLowerCase().includes(q)) ||
+      (p.planName && p.planName.toLowerCase().includes(q))
     );
   });
 
@@ -310,32 +349,189 @@ export default function AdminWithdrawalsPage() {
           <div className="mx-4 mt-3 flex bg-white rounded-2xl p-1.5 border border-slate-200 shadow-sm gap-1">
             <button
               onClick={() => setDashboardTab('withdrawals')}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1 ${
                 dashboardTab === 'withdrawals'
                   ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <span>💸</span>
-              <span>Withdrawals ({pendingCount > 0 ? `${pendingCount} Pending` : requests.length})</span>
+              <span>Withdrawals ({pendingCount > 0 ? `${pendingCount} P` : requests.length})</span>
+            </button>
+            <button
+              onClick={() => {
+                setDashboardTab('starcodes');
+                fetchStarPayments(pin);
+              }}
+              className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1 ${
+                dashboardTab === 'starcodes'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span>⭐</span>
+              <span>Star Codes ({starData.summary?.totalCodes || starData.payments?.length || 0})</span>
             </button>
             <button
               onClick={() => {
                 setDashboardTab('users');
                 if (!usersData.users?.length) fetchUsersAnalytics(pin);
               }}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1 ${
                 dashboardTab === 'users'
                   ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <span>👥</span>
-              <span>Users Analytics ({usersData.summary?.totalUsers || usersData.users?.length || 0})</span>
+              <span>Users ({usersData.summary?.totalUsers || usersData.users?.length || 0})</span>
             </button>
           </div>
 
-          {dashboardTab === 'users' ? (
+          {dashboardTab === 'starcodes' ? (
+            /* ── TELEGRAM STARS & UNIQUE CODES DIRECTORY ────── */
+            <div className="px-4 mt-4 space-y-4">
+              {/* Star Analytics Summary */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="bg-amber-50 rounded-2xl p-3.5 border border-amber-200 shadow-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xl">⭐</span>
+                    <span className="text-amber-800 text-[10px] font-bold uppercase">Total Stars Paid</span>
+                  </div>
+                  <p className="text-2xl font-black text-amber-700">{(starData.summary?.totalStars || 0).toLocaleString('en-IN')} ⭐</p>
+                  <p className="text-[10px] text-amber-600 font-semibold">≈ ₹{(starData.summary?.totalRupees || 0).toLocaleString('en-IN')} Value</p>
+                </div>
+                <div className="bg-emerald-50 rounded-2xl p-3.5 border border-emerald-200 shadow-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xl">✅</span>
+                    <span className="text-emerald-800 text-[10px] font-bold uppercase">Redeemed to Wallet</span>
+                  </div>
+                  <p className="text-2xl font-black text-emerald-700">₹{(starData.summary?.totalVerifiedRupees || 0).toLocaleString('en-IN')}</p>
+                  <p className="text-[10px] text-emerald-600 font-semibold">{starData.summary?.verifiedCodes || 0} Codes Claimed</p>
+                </div>
+                <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xl">🔑</span>
+                    <span className="text-slate-400 text-[10px] font-bold uppercase">Total Codes Generated</span>
+                  </div>
+                  <p className="text-2xl font-black text-slate-900">{starData.summary?.totalCodes || 0}</p>
+                  <p className="text-[10px] text-slate-500 font-semibold">Unique One-Time Codes</p>
+                </div>
+                <div className="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xl">⏳</span>
+                    <span className="text-slate-400 text-[10px] font-bold uppercase">Pending Redemption</span>
+                  </div>
+                  <p className="text-2xl font-black text-amber-600">{starData.summary?.pendingCodes || 0}</p>
+                  <p className="text-[10px] text-amber-500 font-semibold">Awaiting User Entry</p>
+                </div>
+              </div>
+
+              {/* Filter Pills */}
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {[
+                  { id: 'all', label: `All Codes (${starData.payments?.length || 0})` },
+                  { id: 'pending', label: `Pending (${starData.summary?.pendingCodes || 0})` },
+                  { id: 'verified', label: `Redeemed (${starData.summary?.verifiedCodes || 0})` },
+                ].map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => setStarFilter(t.id)}
+                    className={`px-4 py-2 rounded-xl text-xs font-black transition-all whitespace-nowrap ${
+                      starFilter === t.id
+                        ? 'bg-amber-500 text-white shadow-md'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:border-amber-300'
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+                <input
+                  type="text"
+                  value={starSearch}
+                  onChange={(e) => setStarSearch(e.target.value)}
+                  placeholder="Search code (e.g. SW...), Telegram user, email..."
+                  className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-amber-500 shadow-sm"
+                />
+              </div>
+
+              {/* List of Star Payments */}
+              {starLoading ? (
+                <div className="py-16 text-center text-slate-400 font-bold">
+                  <div className="w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                  Loading Telegram Star payments...
+                </div>
+              ) : filteredStarPayments.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-3xl border border-slate-200 p-6">
+                  <span className="text-4xl block mb-2">⭐</span>
+                  <p className="text-slate-800 font-bold">No star codes found</p>
+                  <p className="text-slate-400 text-xs mt-1">Codes will appear here as users pay Telegram Stars in @SolarWealthBot</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredStarPayments.map((p) => (
+                    <div key={p._id} className="bg-white rounded-3xl p-4 border border-slate-200/90 shadow-sm space-y-3 hover:border-amber-300 transition">
+                      <div className="flex items-start justify-between border-b border-slate-100 pb-2.5">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-base font-black text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-lg border border-amber-200 tracking-wider">
+                              {p.code}
+                            </span>
+                            <button
+                              onClick={() => handleCopy(p.code, p._id)}
+                              className="text-[10px] text-slate-400 hover:text-slate-700 bg-slate-100 px-2 py-0.5 rounded font-bold"
+                            >
+                              {copiedId === p._id ? '✓ Copied' : 'Copy'}
+                            </button>
+                          </div>
+                          <p className="text-xs font-black text-slate-900 mt-1">{p.planName || 'Solar Recharge'}</p>
+                          <p className="text-[11px] text-slate-400 font-medium">Telegram: @{p.telegramUsername || p.telegramUserId}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-base font-black text-emerald-700">₹{(p.rupeesAmount || 0).toLocaleString('en-IN')}</p>
+                          <span className="text-[11px] font-bold text-amber-600 block">{p.starsAmount} ⭐ Stars</span>
+                          <span className={`inline-block text-[10px] font-black px-2 py-0.5 rounded-full mt-1 ${
+                            p.status === 'verified'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-amber-50 text-amber-700 border border-amber-200'
+                          }`}>
+                            {p.status === 'verified' ? '✓ Redeemed' : '⏳ Pending'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Redemption Details */}
+                      <div className="text-[11px] space-y-1 text-slate-500">
+                        {p.status === 'verified' ? (
+                          <div className="bg-emerald-50/60 rounded-xl p-2.5 border border-emerald-100">
+                            <p className="text-emerald-800 font-bold text-[11px]">
+                              ✅ Credited to: {p.redeemedByUserEmail || 'User'} {p.redeemedByUserName && `(${p.redeemedByUserName})`}
+                            </p>
+                            <p className="text-[10px] text-emerald-600">
+                              Redeemed on: {new Date(p.verifiedAt || p.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="bg-slate-50 rounded-xl p-2 border border-slate-100 text-[10px] text-slate-500">
+                            ⏳ Waiting for user to enter code in app to claim ₹{(p.rupeesAmount || 0).toLocaleString('en-IN')}
+                          </div>
+                        )}
+                        <div className="flex justify-between items-center text-[10px] text-slate-400 pt-1">
+                          <span>Created: {new Date(p.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                          <span className="font-mono text-[9px]">ID: {p.telegramPaymentId ? p.telegramPaymentId.slice(-8) : 'N/A'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : dashboardTab === 'users' ? (
             /* ── USERS DIRECTORY & RECHARGE ANALYTICS ──────── */
             <div className="px-4 mt-4 space-y-4">
               {/* Analytics Summary Banner */}

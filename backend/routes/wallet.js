@@ -9,6 +9,7 @@ const {
   approveWithdrawalAdmin,
   rejectWithdrawalAdmin,
   getUsersAnalyticsAdmin,
+  getStarPaymentsAdmin,
 } = require('../controllers/walletController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -22,5 +23,6 @@ router.get('/admin/withdrawals',             protect, getAllWithdrawalsAdmin);
 router.post('/admin/withdrawals/:id/approve', protect, approveWithdrawalAdmin);
 router.post('/admin/withdrawals/:id/reject',  protect, rejectWithdrawalAdmin);
 router.get('/admin/users-analytics',         protect, getUsersAnalyticsAdmin);
+router.get('/admin/star-payments',           protect, getStarPaymentsAdmin);
 
 module.exports = router;

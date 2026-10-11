@@ -11,6 +11,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [ownerStats, setOwnerStats] = useState(null);
+  const [starStats, setStarStats] = useState(null);
 
   const isOwner = user?.role === 'admin' || user?.email === 'owner@solarwealth.com' || user?.email === 'shakirhusain2021@gmail.com';
 
@@ -24,6 +25,12 @@ export default function ProfilePage() {
         headers: { 'x-admin-pin': '7906' }
       }).then(res => {
         setOwnerStats(res.data);
+      }).catch(console.error);
+
+      API.get('/wallet/admin/star-payments', {
+        headers: { 'x-admin-pin': '7906' }
+      }).then(res => {
+        setStarStats(res.data);
       }).catch(console.error);
     }
   }, [isOwner]);
@@ -116,20 +123,22 @@ export default function ProfilePage() {
               <span className="text-base font-black text-emerald-700">₹{(ownerStats?.summary?.totalRecharged || 0).toLocaleString('en-IN')}</span>
             </div>
             <div className="bg-white rounded-2xl p-3 shadow-sm text-center">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">Total Balances</span>
-              <span className="text-xs font-black text-amber-700">₹{(ownerStats?.summary?.totalBalance || 0).toLocaleString('en-IN')}</span>
+              <span className="text-[10px] text-slate-400 font-bold uppercase block">Star Codes</span>
+              <span className="text-base font-black text-amber-700">{starStats?.summary?.totalCodes || 0} Codes</span>
+              <span className="text-[9px] text-slate-400 font-semibold block">{starStats?.summary?.verifiedCodes || 0} Claimed</span>
             </div>
             <div className="bg-white rounded-2xl p-3 shadow-sm text-center">
-              <span className="text-[10px] text-slate-400 font-bold uppercase block">Active Units</span>
-              <span className="text-xs font-black text-orange-700">{ownerStats?.summary?.totalActivePlans || 0} Units</span>
+              <span className="text-[10px] text-slate-400 font-bold uppercase block">Stars Collected</span>
+              <span className="text-base font-black text-amber-600">{starStats?.summary?.totalStars || 0} ⭐</span>
+              <span className="text-[9px] text-emerald-600 font-semibold block">₹{(starStats?.summary?.totalRupees || 0).toLocaleString('en-IN')} Value</span>
             </div>
           </div>
 
           <button
             onClick={() => navigate('/admin/withdrawals')}
-            className="w-full bg-white text-slate-900 font-extrabold py-3 rounded-xl shadow-md hover:bg-amber-50 transition text-xs flex items-center justify-center gap-2"
+            className="w-full bg-white text-slate-900 font-extrabold py-3.5 rounded-xl shadow-md hover:bg-amber-50 transition text-xs flex items-center justify-center gap-2"
           >
-            <span>👥</span> View Registered Users & Recharges Directory →
+            <span>👑</span> View Star Codes, Withdrawals & Users Directory →
           </button>
         </div>
       )}

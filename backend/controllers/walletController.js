@@ -2,6 +2,7 @@ const Wallet = require('../models/Wallet');
 const User = require('../models/User');
 const WithdrawalRequest = require('../models/WithdrawalRequest');
 const ActivePlan = require('../models/ActivePlan');
+const StarPayment = require('../models/StarPayment');
 
 exports.getWallet = async (req, res) => {
   try {
@@ -327,3 +328,38 @@ exports.getUsersAnalyticsAdmin = async (req, res) => {
     res.status(500).json({ message: 'Error fetching users analytics: ' + error.message });
   }
 };
+
+// Admin/Owner: Fetch all Telegram Star payments, unique codes, and redemptions
+exports.getStarPaymentsAdmin = async (req, res) => {
+  try {
+    if (!verifyAdminPin(req)) {
+      return res.status(403).json({ message: 'Invalid Admin Security PIN. Access Denied.' });
+    }
+
+    const starPayments = await StarPayment.find().sort({ createdAt: -1 });
+
+    const totalStars = starPayments.reduce((acc, p) => acc + (p.starsAmount || 0), 0);
+    const totalRupees = starPayments.reduce((acc, p) => acc + (p.rupeesAmount || 0), 0);
+    const totalVerifiedRupees = starPayments
+      .filter((p) => p.status === 'verified')
+      .reduce((acc, p) => acc + (p.rupeesAmount || 0), 0);
+    const pendingCount = starPayments.filter((p) => p.status === 'pending').length;
+    const verifiedCount = starPayments.filter((p) => p.status === 'verified').length;
+
+    res.json({
+      summary: {
+        totalStars,
+        totalRupees,
+        totalVerifiedRupees,
+        totalCodes: starPayments.length,
+        pendingCodes: pendingCount,
+        verifiedCodes: verifiedCount,
+      },
+      payments: starPayments,
+    });
+  } catch (error) {
+    console.error('Error in getStarPaymentsAdmin:', error);
+    res.status(500).json({ message: 'Error fetching Star payments: ' + error.message });
+  }
+};
+

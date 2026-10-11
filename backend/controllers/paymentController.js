@@ -86,9 +86,24 @@ exports.verifyStarCode = async (req, res) => {
       });
     }
 
-    // Mark verified
+    // Double-check if any wallet transaction already recorded this code
+    const existingWalletTx = await Wallet.findOne({
+      'transactions.description': { $regex: cleanCode, $options: 'i' },
+    });
+    if (existingWalletTx) {
+      starPayment.status = 'verified';
+      await starPayment.save();
+      return res.status(400).json({
+        message: '⚠️ This verification code has already been credited to a wallet. Duplicate use is not allowed!',
+      });
+    }
+
+    // Mark verified and record who redeemed it
     starPayment.status = 'verified';
     starPayment.verifiedAt = new Date();
+    starPayment.redeemedByUserId = req.user._id;
+    starPayment.redeemedByUserEmail = req.user.email || '';
+    starPayment.redeemedByUserName = req.user.name || '';
     await starPayment.save();
 
     // Credit user's wallet
@@ -98,7 +113,7 @@ exports.verifyStarCode = async (req, res) => {
     }
 
     wallet.balance += starPayment.rupeesAmount;
-    wallet.recharged += starPayment.rupeesAmount;
+    wallet.recharged = (wallet.recharged || 0) + starPayment.rupeesAmount;
     wallet.transactions.push({
       type: 'credit',
       amount: starPayment.rupeesAmount,
