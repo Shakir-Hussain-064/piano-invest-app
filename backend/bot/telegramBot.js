@@ -334,13 +334,18 @@ async function handleWebhookUpdate(req, res) {
 
 function initBot() {
   if (!BOT_TOKEN) return null;
+  // If webhook is active on Vercel/cloud, do not run polling to avoid conflicts or deleting webhook
+  if (process.env.USE_WEBHOOK === 'true' || process.env.POLL_BOT !== 'true') {
+    console.log('[TELEGRAM BOT] Webhook mode active (no local polling needed)');
+    return;
+  }
   if (isPolling) {
     console.log('[TELEGRAM BOT] Polling already running');
     return;
   }
 
   isPolling = true;
-  console.log('[TELEGRAM BOT] ⚡ Ultra-fast Solar Wealth Polling Service started');
+  console.log('[TELEGRAM BOT] ⚡ Solar Wealth Polling Service started');
   pollLoop();
 }
 
