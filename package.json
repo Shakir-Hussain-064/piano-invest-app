@@ -2,10 +2,15 @@
   "name": "pianowealth-monorepo",
   "version": "1.0.0",
   "description": "PianoWealth Investment App",
+  "main": "server.js",
   "scripts": {
+    "postinstall": "cd backend && npm install",
     "build": "cd backend && npm install",
-    "start": "cd backend && node server.js",
+    "start": "node server.js",
     "dev": "cd backend && npm run dev"
+  },
+  "dependencies": {
+    "mongoose": "^7.8.0"
   },
   "engines": {
     "node": ">=18.0.0"

@@ -1,8 +1,11 @@
 {
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
-  "framework": "vite",
   "rewrites": [
+    {
+      "source": "/api/telegram-webhook",
+      "destination": "/api/telegram-webhook"
+    },
     {
       "source": "/api/:match*",
       "destination": "https://piano-invest-app.onrender.com/api/:match*"
