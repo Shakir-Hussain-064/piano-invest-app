@@ -3,15 +3,7 @@
   "outputDirectory": "frontend/dist",
   "rewrites": [
     {
-      "source": "/api/telegram-webhook",
-      "destination": "/api/telegram-webhook"
-    },
-    {
-      "source": "/api/:match*",
-      "destination": "https://piano-invest-app.onrender.com/api/:match*"
-    },
-    {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]
