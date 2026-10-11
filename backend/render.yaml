@@ -6,8 +6,10 @@ services:
     plan: free
     rootDir: backend
     buildCommand: npm install
-    startCommand: npm start
+    startCommand: node server.js
     envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
       - key: PORT
         value: 5000
       - key: MONGO_URI
@@ -20,3 +22,9 @@ services:
         value: Solar Wealth
       - key: CLIENT_URL
         value: "*"
+      - key: TELEGRAM_BOT_TOKEN
+        value: 8723665393:AAHbilt8olKbdZrBZfLIMTg2gfQuO6EikeY
+      - key: TELEGRAM_BOT_USERNAME
+        value: SolarWealthBot
+      - key: STAR_RATE
+        value: 2

@@ -308,6 +308,10 @@ async function pollLoop() {
     }
   } catch (err) {
     console.error('[TELEGRAM BOT] Poll error:', err.message);
+    if (isPolling) {
+      setTimeout(pollLoop, 3000);
+      return;
+    }
   }
 
   // Next poll after tiny 100ms breather

@@ -6,8 +6,10 @@ services:
     plan: free
     rootDir: backend
     buildCommand: npm install
-    startCommand: npm start
+    startCommand: node server.js
     envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
       - key: PORT
         value: 5000
       - key: MONGO_URI

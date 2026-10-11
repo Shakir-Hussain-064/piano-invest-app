@@ -3,11 +3,17 @@
   "version": "1.0.0",
   "description": "PianoWealth Investment App",
   "scripts": {
-    "build": "cd frontend && npm install && npm run build && cd ../backend && npm install",
+    "build": "cd backend && npm install",
     "start": "cd backend && node server.js",
     "dev": "cd backend && npm run dev"
   },
-  "keywords": ["investment", "pianowealth"],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "investment",
+    "pianowealth"
+  ],
   "author": "",
   "license": "ISC"
 }
