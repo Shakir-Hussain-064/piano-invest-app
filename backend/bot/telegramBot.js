@@ -244,37 +244,41 @@ async function handleUpdate(update) {
     return sendPlansMenu(chatId);
   }
 
-  // 2. Callback query (when user taps inline button)
-  if (update.callback_query) {
-    const cb = update.callback_query;
-    const chatId = cb.message.chat.id;
-    const data = cb.data || '';
+    // 2. Callback query (when user taps inline button)
+    if (update.callback_query) {
+      const cb = update.callback_query;
+      const chatId = cb.message.chat.id;
+      const data = cb.data || '';
 
-    // Acknowledge callback query
-    await callTelegram('answerCallbackQuery', { callback_query_id: cb.id });
+      // Acknowledge callback query immediately in background (non-blocking)
+      callTelegram('answerCallbackQuery', { callback_query_id: cb.id }).catch(() => {});
 
-    if (data.startsWith('buy_')) {
-      const parts = data.split('_');
-      const planId = parts[1];
-      const appUserId = parts.slice(2).join('_') || 'guest';
-      const plan = findPlanById(planId);
-      if (plan) {
-        return sendPlanInvoice(chatId, plan, appUserId);
+      if (data.startsWith('buy_')) {
+        const parts = data.split('_');
+        const planId = parts[1];
+        const appUserId = parts.slice(2).join('_') || 'guest';
+        const plan = findPlanById(planId);
+        if (plan) {
+          return sendPlanInvoice(chatId, plan, appUserId);
+        }
       }
+      return;
     }
-  }
 
-  // 3. Pre-checkout query (Telegram requires answer within 10s)
-  if (update.pre_checkout_query) {
-    const pc = update.pre_checkout_query;
-    await callTelegram('answerPreCheckoutQuery', {
-      pre_checkout_query_id: pc.id,
-      ok: true,
-    });
+    // 3. Pre-checkout query (Telegram requires fast answer)
+    if (update.pre_checkout_query) {
+      const pc = update.pre_checkout_query;
+      return callTelegram('answerPreCheckoutQuery', {
+        pre_checkout_query_id: pc.id,
+        ok: true,
+      });
+    }
+  } catch (err) {
+    console.error('[TELEGRAM BOT] handleUpdate error:', err.message);
   }
 }
 
-// Long-polling loop
+// Long-polling loop (ultra-fast sub-second cycle)
 let isPolling = false;
 let lastUpdateId = 0;
 
@@ -284,26 +288,42 @@ async function pollLoop() {
   try {
     const res = await callTelegram('getUpdates', {
       offset: lastUpdateId + 1,
-      timeout: 20,
+      timeout: 1, // 1-second short poll: ensures instant update delivery without hanging
+      limit: 100,
     });
 
-    if (res.ok && Array.isArray(res.result)) {
-      for (const update of res.result) {
-        lastUpdateId = Math.max(lastUpdateId, update.update_id);
-        try {
-          await handleUpdate(update);
-        } catch (hErr) {
-          console.error('[TELEGRAM BOT] handleUpdate error:', hErr.message);
-        }
-      }
+    if (res.ok && Array.isArray(res.result) && res.result.length > 0) {
+      // Process all incoming updates in parallel for instant speed
+      await Promise.all(
+        res.result.map(async (update) => {
+          lastUpdateId = Math.max(lastUpdateId, update.update_id);
+          try {
+            await handleUpdate(update);
+          } catch (hErr) {
+            console.error('[TELEGRAM BOT] update error:', hErr.message);
+          }
+        })
+      );
     }
   } catch (err) {
     console.error('[TELEGRAM BOT] Poll error:', err.message);
   }
 
-  // Immediate next poll if active
+  // Next poll after tiny 100ms breather
   if (isPolling) {
-    setTimeout(pollLoop, 500);
+    setTimeout(pollLoop, 100);
+  }
+}
+
+// Express webhook handler for zero-latency direct push
+async function handleWebhookUpdate(req, res) {
+  res.status(200).send({ ok: true });
+  try {
+    if (req.body && req.body.update_id) {
+      await handleUpdate(req.body);
+    }
+  } catch (err) {
+    console.error('[TELEGRAM BOT] Webhook error:', err.message);
   }
 }
 
@@ -315,8 +335,8 @@ function initBot() {
   }
 
   isPolling = true;
-  console.log('[TELEGRAM BOT] ✅ Solar Wealth Polling Service started (Native REST API)');
+  console.log('[TELEGRAM BOT] ⚡ Ultra-fast Solar Wealth Polling Service started');
   pollLoop();
 }
 
-module.exports = { initBot, callTelegram };
+module.exports = { initBot, handleWebhookUpdate, callTelegram };

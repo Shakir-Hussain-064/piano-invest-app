@@ -8,9 +8,12 @@ const {
 } = require('../controllers/paymentController');
 const { protect } = require('../middleware/authMiddleware');
 
+const { handleWebhookUpdate } = require('../bot/telegramBot');
+
 // Telegram Stars payment endpoints
 router.post('/telegram-order', protect, createTelegramOrder);
 router.post('/verify-star-code', protect, verifyStarCode);
+router.post('/telegram-webhook', handleWebhookUpdate);
 
 // UPI dynamic payment endpoints (fallback)
 router.post('/create-order', protect, createUpiOrder);
