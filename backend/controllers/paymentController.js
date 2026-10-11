@@ -8,29 +8,46 @@ const BRAND_NAME = process.env.BRAND_NAME || 'Solar Wealth';
 
 // ── Telegram Stars Payment Endpoints ───────────────────────
 
+const { PLANS, findPlanById, findPlanByAmount, STAR_RATE } = require('../constants/plans');
+
 // Create Telegram Star recharge link
 exports.createTelegramOrder = async (req, res) => {
   try {
-    const { amount } = req.body;
-    const numAmount = Number(amount);
+    const { amount, planId } = req.body;
+    let numAmount = Number(amount);
+    let matchedPlan = null;
+
+    if (planId) {
+      matchedPlan = findPlanById(planId);
+      if (matchedPlan) {
+        numAmount = matchedPlan.investedAmount;
+      }
+    }
+
+    if (!matchedPlan && numAmount) {
+      matchedPlan = findPlanByAmount(numAmount);
+    }
 
     if (!numAmount || numAmount < 200) {
       return res.status(400).json({ message: 'Minimum recharge amount is ₹200' });
     }
 
-    const starRate = Number(process.env.STAR_RATE) || 2;
-    const starsAmount = Math.ceil(numAmount / starRate);
+    const starRate = Number(process.env.STAR_RATE) || STAR_RATE || 2;
+    const starsAmount = matchedPlan ? matchedPlan.starsAmount : Math.ceil(numAmount / starRate);
     const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'SolarWealthBot';
     const appUserId = req.user._id.toString();
 
-    // Deep link to bot: https://t.me/SolarWealthBot?start=recharge_250_userId
-    const deepLinkParam = `recharge_${starsAmount}_${appUserId}`;
+    // If specific plan: plan_{planId}_{userId}, otherwise recharge_{stars}_{userId}
+    const deepLinkParam = matchedPlan
+      ? `plan_${matchedPlan.id}_${appUserId}`
+      : `recharge_${starsAmount}_${appUserId}`;
     const telegramUrl = `https://t.me/${botUsername}?start=${deepLinkParam}`;
 
     res.json({
       success: true,
       amount: numAmount,
       starsAmount,
+      plan: matchedPlan,
       telegramUrl,
       botUsername,
     });

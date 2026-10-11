@@ -1,93 +1,174 @@
 const TelegramBot = require('node-telegram-bot-api');
 const StarPayment = require('../models/StarPayment');
+const { PLANS, STAR_RATE, findPlanById, findPlanByAmount } = require('../constants/plans');
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8723665393:AAHbilt8olKbdZrBZfLIMTg2gfQuO6EikeY';
-
-if (!BOT_TOKEN) {
-  console.error('[TELEGRAM BOT] ❌ TELEGRAM_BOT_TOKEN not set in environment!');
-}
-
-// Star-to-Rupee conversion: 1 Star = ₹2 (configurable)
-const STAR_RATE = Number(process.env.STAR_RATE) || 2;
-
-// Recharge plan options (Stars amount → Rupees)
-const RECHARGE_PLANS = [
-  { stars: 250,   rupees: 500 },
-  { stars: 500,   rupees: 1000 },
-  { stars: 1250,  rupees: 2500 },
-  { stars: 2500,  rupees: 5000 },
-  { stars: 5000,  rupees: 10000 },
-  { stars: 7500,  rupees: 15000 },
-  { stars: 10000, rupees: 20000 },
-];
 
 let bot = null;
 
 function initBot() {
-  if (!BOT_TOKEN) return null;
+  if (!BOT_TOKEN) {
+    console.error('[TELEGRAM BOT] ❌ BOT_TOKEN missing');
+    return null;
+  }
 
   bot = new TelegramBot(BOT_TOKEN, { polling: true });
-  console.log('[TELEGRAM BOT] ✅ Bot initialized with polling');
+  console.log('[TELEGRAM BOT] ✅ Solar Wealth Bot initialized with polling');
 
-  // ── /start with deep link ──────────────────────────────────
+  // Helper: Send plan invoice
+  async function sendPlanInvoice(chatId, plan, appUserId = 'guest') {
+    const payload = `plan_${plan.id}_${appUserId}_${Date.now()}`;
+    const desc =
+      `Buy ${plan.name}.\n` +
+      `• Daily Yield: ₹${plan.dailyEarn.toLocaleString('en-IN')}/day\n` +
+      `• Total Return: ₹${plan.totalReturn.toLocaleString('en-IN')} (over ${plan.totalDays} days)\n` +
+      `• Wallet Value: ₹${plan.investedAmount.toLocaleString('en-IN')}\n\n` +
+      `After payment, you will receive a unique code to add ₹${plan.investedAmount.toLocaleString('en-IN')} to your wallet.`;
+
+    return bot.sendInvoice(
+      chatId,
+      `${plan.name} (₹${plan.investedAmount.toLocaleString('en-IN')})`,
+      desc,
+      payload,
+      '', // provider_token empty for Telegram Stars
+      'XTR', // Telegram Stars currency
+      [{ label: plan.name, amount: plan.starsAmount }]
+    );
+  }
+
+  // Helper: Send Plans Menu with interactive inline buttons
+  async function sendPlansMenu(chatId, appUserId = 'guest') {
+    let msg = `☀️ *SOLAR WEALTH — OFFICIAL INVESTMENT PLANS*\n\n`;
+    msg += `Buy any plan using Telegram Stars ⭐. After payment, you'll get a *Unique Verification Code* to credit the exact plan amount to your app wallet.\n\n`;
+
+    msg += `📋 *STANDARD PLANS (60 Days · 12x Return):*\n`;
+    const standardPlans = PLANS.filter((p) => !p.isVip);
+    standardPlans.forEach((p) => {
+      msg += `• *${p.name}*: ₹${p.investedAmount.toLocaleString('en-IN')} (${p.starsAmount} ⭐) → Earn ₹${p.dailyEarn}/day (Total: ₹${p.totalReturn.toLocaleString('en-IN')})\n`;
+    });
+
+    msg += `\n⚡ *VIP MEGA PLANS (High Yield):*\n`;
+    const vipPlans = PLANS.filter((p) => p.isVip);
+    vipPlans.forEach((p) => {
+      msg += `• *${p.name}*: ₹${p.investedAmount.toLocaleString('en-IN')} (${p.starsAmount} ⭐) → Earn ₹${p.dailyEarn}/day (Total: ₹${p.totalReturn.toLocaleString('en-IN')})\n`;
+    });
+
+    msg += `\n👇 *Select a plan below to buy with Telegram Stars:*`;
+
+    // Inline buttons for Standard plans
+    const standardButtons = standardPlans.map((p) => [
+      {
+        text: `${p.name} — ${p.starsAmount} ⭐ (₹${p.investedAmount.toLocaleString('en-IN')})`,
+        callback_data: `buy_${p.id}_${appUserId}`,
+      },
+    ]);
+
+    // Inline buttons for VIP plans
+    const vipButtons = vipPlans.map((p) => [
+      {
+        text: `${p.name} — ${p.starsAmount} ⭐ (₹${p.investedAmount.toLocaleString('en-IN')})`,
+        callback_data: `buy_${p.id}_${appUserId}`,
+      },
+    ]);
+
+    return bot.sendMessage(chatId, msg, {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [...standardButtons, ...vipButtons],
+      },
+    });
+  }
+
+  // ── /start command ─────────────────────────────────────────
   bot.onText(/\/start(?:\s+(.+))?/, async (msg, match) => {
     const chatId = msg.chat.id;
-    const param = match[1]; // e.g. "recharge_250_userId123"
+    const param = match ? match[1] : null;
 
     if (!param) {
-      // Plain /start - show welcome
-      return bot.sendMessage(chatId,
-        `🌟 *Welcome to Solar Wealth!*\n\n` +
-        `This bot helps you recharge your Solar Wealth wallet using Telegram Stars ⭐\n\n` +
-        `*How it works:*\n` +
-        `1️⃣ Open the Solar Wealth app\n` +
-        `2️⃣ Go to Wallet → Recharge\n` +
-        `3️⃣ Select amount & tap "Open Telegram"\n` +
-        `4️⃣ Pay with Stars here\n` +
-        `5️⃣ Copy your unique code\n` +
-        `6️⃣ Paste it in the app\n\n` +
-        `Your wallet will be recharged instantly! 🚀`,
-        { parse_mode: 'Markdown' }
-      );
+      return sendPlansMenu(chatId);
     }
 
-    // Parse deep link: recharge_{stars}_{appUserId}
-    const parts = param.split('_');
-    if (parts[0] !== 'recharge' || parts.length < 3) {
-      return bot.sendMessage(chatId, '❌ Invalid recharge link. Please use the Solar Wealth app to generate a valid link.');
-    }
+    // Check if deep link is for a specific plan: plan_{planId}_{userId}
+    if (param.startsWith('plan_')) {
+      const parts = param.split('_');
+      const planId = parts[1];
+      const appUserId = parts.slice(2).join('_');
+      const plan = findPlanById(planId);
 
-    const starsAmount = parseInt(parts[1]);
-    const appUserId = parts.slice(2).join('_'); // Handle ObjectIDs with underscores
-
-    if (!starsAmount || starsAmount < 1) {
-      return bot.sendMessage(chatId, '❌ Invalid stars amount.');
-    }
-
-    const rupeesAmount = starsAmount * STAR_RATE;
-
-    // Send Star Payment Invoice
-    try {
-      await bot.sendInvoice(
-        chatId,
-        `Solar Wealth Recharge ₹${rupeesAmount.toLocaleString()}`,  // title
-        `Recharge ₹${rupeesAmount.toLocaleString()} to your Solar Wealth wallet.\n\nAfter payment, you'll receive a unique code. Paste it in the app to complete your recharge.`, // description
-        `recharge_${appUserId}_${Date.now()}`,  // payload
-        '',     // provider_token (empty for Telegram Stars)
-        'XTR',  // currency (Telegram Stars)
-        [{ label: `₹${rupeesAmount.toLocaleString()} Wallet Recharge`, amount: starsAmount }], // prices
-        {
-          // Optional: photo for the invoice
-          // photo_url: 'https://example.com/logo.png',
+      if (plan) {
+        try {
+          await sendPlanInvoice(chatId, plan, appUserId);
+          return;
+        } catch (err) {
+          console.error('[TELEGRAM BOT] Invoice error for plan:', planId, err.message);
+          return bot.sendMessage(chatId, `❌ Could not generate invoice for ${plan.name}. Please try again.`);
         }
-      );
+      }
+    }
+
+    // Check if deep link is recharge_{stars}_{userId}
+    if (param.startsWith('recharge_')) {
+      const parts = param.split('_');
+      const starsAmount = parseInt(parts[1]);
+      const appUserId = parts.slice(2).join('_');
+      const rupeesAmount = starsAmount * STAR_RATE;
+      const matchedPlan = findPlanByAmount(rupeesAmount);
+
+      try {
+        if (matchedPlan) {
+          await sendPlanInvoice(chatId, matchedPlan, appUserId);
+        } else {
+          await bot.sendInvoice(
+            chatId,
+            `Solar Wealth Recharge ₹${rupeesAmount.toLocaleString('en-IN')}`,
+            `Recharge ₹${rupeesAmount.toLocaleString('en-IN')} to your Solar Wealth wallet using ${starsAmount} Stars.\n\nAfter payment, you will receive a unique verification code to enter in the app.`,
+            `recharge_${appUserId}_${Date.now()}`,
+            '',
+            'XTR',
+            [{ label: `₹${rupeesAmount.toLocaleString('en-IN')} Wallet Recharge`, amount: starsAmount }]
+          );
+        }
+        return;
+      } catch (err) {
+        console.error('[TELEGRAM BOT] Recharge invoice error:', err.message);
+      }
+    }
+
+    // Fallback: show plans menu
+    return sendPlansMenu(chatId);
+  });
+
+  // ── /plans command ─────────────────────────────────────────
+  bot.onText(/\/plans/, async (msg) => {
+    return sendPlansMenu(msg.chat.id);
+  });
+
+  // ── Callback query handler for inline plan buttons ────────
+  bot.on('callback_query', async (query) => {
+    const chatId = query.message.chat.id;
+    const data = query.data || '';
+
+    try {
+      await bot.answerCallbackQuery(query.id);
+
+      if (data.startsWith('buy_')) {
+        const parts = data.split('_');
+        const planId = parts[1];
+        const appUserId = parts.slice(2).join('_') || 'guest';
+        const plan = findPlanById(planId);
+
+        if (!plan) {
+          return bot.sendMessage(chatId, '❌ Plan not found. Please type /plans to view available plans.');
+        }
+
+        await sendPlanInvoice(chatId, plan, appUserId);
+      }
     } catch (err) {
-      console.error('[TELEGRAM BOT] Invoice error:', err.message);
-      bot.sendMessage(chatId, '❌ Failed to create payment invoice. Please try again from the app.');
+      console.error('[TELEGRAM BOT] Callback query error:', err.message);
     }
   });
 
-  // ── Pre-checkout query - always approve ────────────────────
+  // ── Pre-checkout query - must answer within 10s ────────────
   bot.on('pre_checkout_query', async (query) => {
     try {
       await bot.answerPreCheckoutQuery(query.id, true);
@@ -101,20 +182,45 @@ function initBot() {
     if (!msg.successful_payment) return;
 
     const payment = msg.successful_payment;
-    const payload = payment.invoice_payload; // "recharge_appUserId_timestamp"
-    const parts = payload.split('_');
-
-    // Extract appUserId (everything between first and last underscore segment)
-    const appUserId = parts.slice(1, -1).join('_');
+    const payload = payment.invoice_payload || '';
     const starsAmount = payment.total_amount;
-    const rupeesAmount = starsAmount * STAR_RATE;
 
-    // Generate unique alphanumeric code
+    let planId = '';
+    let planName = '';
+    let rupeesAmount = starsAmount * STAR_RATE;
+    let appUserId = '';
+
+    if (payload.startsWith('plan_')) {
+      const parts = payload.split('_');
+      planId = parts[1];
+      appUserId = parts[2] || '';
+      const plan = findPlanById(planId);
+      if (plan) {
+        planName = plan.name;
+        rupeesAmount = plan.investedAmount;
+      }
+    } else if (payload.startsWith('recharge_')) {
+      const parts = payload.split('_');
+      appUserId = parts[1] || '';
+      const matched = findPlanByAmount(rupeesAmount);
+      if (matched) {
+        planId = matched.id;
+        planName = matched.name;
+      }
+    }
+
+    if (!planName) {
+      planName = `Solar Wealth Recharge ₹${rupeesAmount.toLocaleString('en-IN')}`;
+    }
+
+    // Generate unique verification code (e.g. SW8F3K)
     const code = 'SW' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
     try {
       await StarPayment.create({
         code,
+        planId,
+        planName,
         appUserId,
         telegramUserId: msg.from.id.toString(),
         telegramUsername: msg.from.username || msg.from.first_name || '',
@@ -124,37 +230,35 @@ function initBot() {
         status: 'pending',
       });
 
-      await bot.sendMessage(msg.chat.id,
-        `✅ *Payment Successful!*\n\n` +
-        `━━━━━━━━━━━━━━━━━━\n` +
-        `🔑 *Your Verification Code:*\n\n` +
+      const responseText =
+        `✅ *PAYMENT SUCCESSFUL!*\n\n` +
+        `━━━━━━━━━━━━━━━━━━━━\n` +
+        `☀️ *Plan:* ${planName}\n` +
+        `💰 *Wallet Amount:* ₹${rupeesAmount.toLocaleString('en-IN')}\n` +
+        `⭐ *Stars Paid:* ${starsAmount} Stars\n` +
+        `━━━━━━━━━━━━━━━━━━━━\n\n` +
+        `🔑 *YOUR UNIQUE VERIFICATION CODE:*\n\n` +
         `\`${code}\`\n\n` +
-        `━━━━━━━━━━━━━━━━━━\n\n` +
-        `💰 *Amount:* ₹${rupeesAmount.toLocaleString()}\n` +
-        `⭐ *Stars Paid:* ${starsAmount}\n\n` +
-        `📋 *Next Steps:*\n` +
-        `1. Copy the code above\n` +
-        `2. Go back to Solar Wealth app\n` +
-        `3. Paste it in the "Verification Code" field\n` +
-        `4. Tap "Verify & Add to Wallet"\n\n` +
-        `⏰ Code expires in 30 minutes`,
-        { parse_mode: 'Markdown' }
-      );
+        `━━━━━━━━━━━━━━━━━━━━\n\n` +
+        `📋 *How to claim ₹${rupeesAmount.toLocaleString('en-IN')} in App:*\n` +
+        `1️⃣ Tap the code above to copy\n` +
+        `2️⃣ Open *Solar Wealth App* → *Wallet*\n` +
+        `3️⃣ Paste code in the *Verification Code* box\n` +
+        `4️⃣ Tap *Verify Code* → *₹${rupeesAmount.toLocaleString('en-IN')}* will be added to your wallet instantly!\n\n` +
+        `🔒 *One-Time Use:* This unique code can only be used once.`;
 
-      console.log(`[TELEGRAM BOT] ✅ Payment ${code} | User: ${appUserId} | Stars: ${starsAmount} | ₹${rupeesAmount}`);
-
+      await bot.sendMessage(msg.chat.id, responseText, { parse_mode: 'Markdown' });
+      console.log(`[TELEGRAM BOT] ✅ Payment complete! Code: ${code} | Plan: ${planName} | ₹${rupeesAmount}`);
     } catch (err) {
       console.error('[TELEGRAM BOT] Payment save error:', err.message);
-      await bot.sendMessage(msg.chat.id,
-        `✅ Payment received but there was an error generating your code.\n\n` +
-        `Please contact support with your Telegram Payment ID:\n` +
-        `\`${payment.telegram_payment_charge_id}\``,
+      await bot.sendMessage(
+        msg.chat.id,
+        `✅ Stars payment received, but code generation encountered an error.\nPayment ID: \`${payment.telegram_payment_charge_id}\`\nPlease contact support.`,
         { parse_mode: 'Markdown' }
       );
     }
   });
 
-  // ── Error handler ──────────────────────────────────────────
   bot.on('polling_error', (err) => {
     console.error('[TELEGRAM BOT] Polling error:', err.code, err.message);
   });
@@ -162,4 +266,4 @@ function initBot() {
   return bot;
 }
 
-module.exports = { initBot, RECHARGE_PLANS, STAR_RATE };
+module.exports = { initBot };

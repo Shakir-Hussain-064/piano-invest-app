@@ -2,7 +2,9 @@ const mongoose = require('mongoose');
 
 const starPaymentSchema = new mongoose.Schema({
   code: { type: String, required: true, unique: true, uppercase: true },
-  appUserId: { type: String, required: true },
+  planId: { type: String, default: '' },
+  planName: { type: String, default: '' },
+  appUserId: { type: String, default: '' },
   telegramUserId: { type: String, required: true },
   telegramUsername: { type: String, default: '' },
   starsAmount: { type: Number, required: true },
