@@ -1,11 +1,109 @@
 const Wallet = require('../models/Wallet');
 const PaymentOrder = require('../models/PaymentOrder');
+const StarPayment = require('../models/StarPayment');
 
-// BharatPe VPA - used to receive payments
+// BharatPe VPA - used to receive payments (fallback)
 const PAYEE_VPA  = process.env.UPI_ID || 'BHARATPE2V0A0L7H9O51145@unitype';
 const BRAND_NAME = process.env.BRAND_NAME || 'Solar Wealth';
 
-// 1. Create a clean UPI payment order (no bpsign - causes UPI Risk warning)
+// ── Telegram Stars Payment Endpoints ───────────────────────
+
+// Create Telegram Star recharge link
+exports.createTelegramOrder = async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const numAmount = Number(amount);
+
+    if (!numAmount || numAmount < 200) {
+      return res.status(400).json({ message: 'Minimum recharge amount is ₹200' });
+    }
+
+    const starRate = Number(process.env.STAR_RATE) || 2;
+    const starsAmount = Math.ceil(numAmount / starRate);
+    const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'SolarWealthBot';
+    const appUserId = req.user._id.toString();
+
+    // Deep link to bot: https://t.me/SolarWealthBot?start=recharge_250_userId
+    const deepLinkParam = `recharge_${starsAmount}_${appUserId}`;
+    const telegramUrl = `https://t.me/${botUsername}?start=${deepLinkParam}`;
+
+    res.json({
+      success: true,
+      amount: numAmount,
+      starsAmount,
+      telegramUrl,
+      botUsername,
+    });
+  } catch (error) {
+    console.error('createTelegramOrder error:', error);
+    res.status(500).json({ message: 'Error generating Telegram recharge link: ' + error.message });
+  }
+};
+
+// Verify Telegram Star unique code
+exports.verifyStarCode = async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) {
+      return res.status(400).json({ message: 'Verification code is required' });
+    }
+
+    const cleanCode = code.trim().toUpperCase();
+
+    const starPayment = await StarPayment.findOne({ code: cleanCode });
+    if (!starPayment) {
+      return res.status(404).json({
+        message: 'Invalid Verification Code. Please check the code received from @SolarWealthBot after paying Stars.',
+      });
+    }
+
+    if (starPayment.status === 'verified') {
+      return res.status(400).json({
+        message: '⚠️ This code has already been redeemed and credited to a wallet. Each code is one-time use only!',
+      });
+    }
+
+    if (starPayment.status !== 'pending') {
+      return res.status(400).json({
+        message: 'This code is not eligible for redemption (Status: ' + starPayment.status + ').',
+      });
+    }
+
+    // Mark verified
+    starPayment.status = 'verified';
+    starPayment.verifiedAt = new Date();
+    await starPayment.save();
+
+    // Credit user's wallet
+    const wallet = await Wallet.findOne({ userId: req.user._id });
+    if (!wallet) {
+      return res.status(404).json({ message: 'User wallet not found' });
+    }
+
+    wallet.balance += starPayment.rupeesAmount;
+    wallet.recharged += starPayment.rupeesAmount;
+    wallet.transactions.push({
+      type: 'credit',
+      amount: starPayment.rupeesAmount,
+      description: `Solar Wallet Recharge via Telegram Stars (${starPayment.starsAmount} ⭐, Code: ${cleanCode})`,
+      date: new Date(),
+    });
+    await wallet.save();
+
+    res.json({
+      success: true,
+      message: `₹${starPayment.rupeesAmount.toLocaleString('en-IN')} successfully added to your wallet!`,
+      amount: starPayment.rupeesAmount,
+      stars: starPayment.starsAmount,
+      balance: wallet.balance,
+    });
+  } catch (error) {
+    console.error('verifyStarCode error:', error);
+    res.status(500).json({ message: 'Failed to verify Star payment: ' + error.message });
+  }
+};
+
+// 1. Create a clean UPI payment order (fallback)
 exports.createUpiOrder = async (req, res) => {
   try {
     const { amount } = req.body;

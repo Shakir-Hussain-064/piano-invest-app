@@ -8,16 +8,17 @@ export default function WalletPage() {
   const { user }                            = useAuth();
   const [wallet, setWallet]                 = useState(null);
   const [loading, setLoading]               = useState(true);
-  const [rechargeAmount, setRechargeAmount] = useState('');
+  const [rechargeAmount, setRechargeAmount] = useState('500');
   const [activeTab, setActiveTab]           = useState('overview');
-  const [paying, setPaying]                 = useState(false);
   const [withdrawing, setWithdrawing]       = useState(false);
   const [message, setMessage]               = useState({ text: '', type: '' });
 
-  // Dynamic UPI Payment state
-  const [activeOrder, setActiveOrder]       = useState(null);
-  const [utrInput, setUtrInput]             = useState('');
-  const [submittingUtr, setSubmittingUtr]   = useState(false);
+  // Telegram Stars Payment state
+  const [starOrder, setStarOrder]           = useState(null);
+  const [starCodeInput, setStarCodeInput]   = useState('');
+  const [verifyingCode, setVerifyingCode]   = useState(false);
+  const [openingTelegram, setOpeningTelegram] = useState(false);
+  const [manualCodeMode, setManualCodeMode] = useState(false);
 
   // Withdraw form state
   const [withdrawAmount, setWithdrawAmount] = useState('');
@@ -64,49 +65,49 @@ export default function WalletPage() {
     setTimeout(() => setMessage({ text: '', type: '' }), 6000);
   };
 
-  // ── Step 1: Generate Dynamic UPI QR & Intent ──────────────────
-  const handleGenerateUpi = async () => {
+  // ── Step 1: Open Telegram Bot for Star Payment ───────────────
+  const handleOpenTelegram = async () => {
     const amt = Number(rechargeAmount);
-    if (!amt || amt < 500) { showMsg('Minimum recharge amount is ₹500', 'error'); return; }
+    if (!amt || amt < 200) { showMsg('Minimum recharge amount is ₹200', 'error'); return; }
 
-    setPaying(true);
+    setOpeningTelegram(true);
     try {
-      const { data } = await API.post('/payment/create-order', { amount: amt });
-      setActiveOrder(data);
-      setUtrInput('');
-      showMsg(`Dynamic Solar UPI QR generated for ₹${amt}. Pay & enter 12-digit UTR below.`, 'success');
+      const { data } = await API.post('/payment/telegram-order', { amount: amt });
+      setStarOrder(data);
+      setStarCodeInput('');
+      // Open Telegram deep link in new window / app
+      window.open(data.telegramUrl, '_blank');
+      showMsg(`Telegram opened! Pay ${data.starsAmount} ⭐ Stars in @${data.botUsername} and enter the received code below.`, 'success');
     } catch (err) {
-      showMsg(err.response?.data?.message || 'Could not generate UPI QR', 'error');
+      showMsg(err.response?.data?.message || 'Could not open Telegram recharge', 'error');
     } finally {
-      setPaying(false);
+      setOpeningTelegram(false);
     }
   };
 
-  // ── Step 2: Submit 12-digit UTR / Reference ID ────────────────
-  const handleSubmitUtr = async (e) => {
+  // ── Step 2: Verify Unique Code Received from Bot ─────────────
+  const handleVerifyStarCode = async (e) => {
     e.preventDefault();
-    const clean = utrInput.trim().replace(/\s+/g, '');
-    if (!clean || clean.length < 10) {
-      showMsg('Please enter a valid 12-digit UPI UTR / Reference Number from your payment receipt', 'error');
+    const clean = starCodeInput.trim().toUpperCase();
+    if (!clean || clean.length < 4) {
+      showMsg('Please enter a valid Verification Code received from @SolarWealthBot (e.g. SW7XK9)', 'error');
       return;
     }
 
-    setSubmittingUtr(true);
+    setVerifyingCode(true);
     try {
-      const { data } = await API.post('/payment/submit-utr', {
-        orderId: activeOrder.orderId,
-        utr: utrInput.trim(),
-      });
+      const { data } = await API.post('/payment/verify-star-code', { code: clean });
       showMsg(data.message, 'success');
-      setActiveOrder(null);
-      setRechargeAmount('');
-      setUtrInput('');
+      setStarOrder(null);
+      setManualCodeMode(false);
+      setRechargeAmount('500');
+      setStarCodeInput('');
       fetchWallet();
       setActiveTab('overview');
     } catch (err) {
-      showMsg(err.response?.data?.message || 'UTR verification failed. Check the reference number.', 'error');
+      showMsg(err.response?.data?.message || 'Verification failed. Please check the code.', 'error');
     } finally {
-      setSubmittingUtr(false);
+      setVerifyingCode(false);
     }
   };
 
@@ -191,7 +192,7 @@ export default function WalletPage() {
       <div className="mx-4 mt-4 flex bg-white rounded-2xl p-1.5 border border-slate-200 shadow-sm gap-1">
         {[
           { id: 'overview', label: '📊  Overview' },
-          { id: 'recharge', label: '⚡  UPI Recharge' },
+          { id: 'recharge', label: '⭐  Stars Recharge' },
           { id: 'withdraw', label: '🏦  Withdraw' },
         ].map((tab) => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -246,122 +247,170 @@ export default function WalletPage() {
           </div>
         )}
 
-        {/* RECHARGE (DYNAMIC UPI QR + INTENT) */}
+        {/* RECHARGE (TELEGRAM STARS & UNIQUE CODE) */}
         {activeTab === 'recharge' && (
           <div className="space-y-5">
-            {!activeOrder ? (
-              // Step 1: Amount Selection
+            {!starOrder && !manualCodeMode ? (
+              // Step 1: Amount & Stars Selection
               <div className="space-y-5">
-                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3 shadow-sm">
-                  <span className="text-2xl">⚡</span>
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 flex gap-3 shadow-sm">
+                  <span className="text-2xl">⭐</span>
                   <div>
-                    <p className="text-amber-900 font-extrabold text-sm">Direct UPI Instant Recharge</p>
-                    <p className="text-amber-700 text-xs mt-0.5">Pay via Google Pay, PhonePe, Paytm, or BHIM UPI using verified Dynamic QR.</p>
+                    <p className="text-amber-900 font-extrabold text-sm">Telegram Stars Instant Recharge</p>
+                    <p className="text-amber-700 text-xs mt-0.5">
+                      Pay via Telegram Stars ⭐ in <strong>@SolarWealthBot</strong>. Rate: 1 Star = ₹2.
+                    </p>
                   </div>
                 </div>
 
-                {/* quick select */}
+                {/* Quick Select Buttons */}
                 <div>
-                  <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Select Solar Capacity</p>
+                  <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Select Recharge Amount</p>
                   <div className="grid grid-cols-3 gap-2">
-                    {quickAmounts.map((amt) => (
-                      <button key={amt} onClick={() => setRechargeAmount(String(amt))}
-                        className={`py-3 rounded-xl text-sm font-black border transition-all ${
-                          rechargeAmount === String(amt)
-                            ? 'bg-amber-500 border-amber-600 text-white shadow-md'
-                            : 'bg-white border-slate-200 text-slate-700 hover:border-amber-400'
-                        }`}>
-                        ₹{amt >= 1000 ? `${amt/1000}K` : amt}
-                      </button>
-                    ))}
+                    {quickAmounts.map((amt) => {
+                      const stars = Math.ceil(amt / 2);
+                      const isSelected = rechargeAmount === String(amt);
+                      return (
+                        <button
+                          key={amt}
+                          onClick={() => setRechargeAmount(String(amt))}
+                          className={`py-3 px-2 rounded-xl text-center border transition-all ${
+                            isSelected
+                              ? 'bg-amber-500 border-amber-600 text-white shadow-md'
+                              : 'bg-white border-slate-200 text-slate-700 hover:border-amber-400'
+                          }`}
+                        >
+                          <p className="font-black text-sm">₹{amt >= 1000 ? `${amt / 1000}K` : amt}</p>
+                          <p className={`text-[11px] font-semibold mt-0.5 ${isSelected ? 'text-amber-100' : 'text-amber-600'}`}>
+                            {stars} ⭐
+                          </p>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
+                {/* Custom Amount */}
                 <div>
-                  <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Or Custom Amount</p>
+                  <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Or Custom Amount (₹)</p>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
-                    <input type="number" value={rechargeAmount} onChange={(e) => setRechargeAmount(e.target.value)}
-                      placeholder="Enter amount (min ₹500)"
-                      className="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 transition shadow-sm font-semibold" />
+                    <input
+                      type="number"
+                      value={rechargeAmount}
+                      onChange={(e) => setRechargeAmount(e.target.value)}
+                      placeholder="Enter amount (min ₹200)"
+                      className="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 transition shadow-sm font-semibold"
+                    />
                   </div>
+                  {rechargeAmount && Number(rechargeAmount) >= 200 && (
+                    <div className="mt-2 bg-amber-50 border border-amber-200/80 rounded-xl px-3.5 py-2 flex items-center justify-between text-xs font-bold text-amber-900">
+                      <span>Equivalent Telegram Stars:</span>
+                      <span className="text-amber-700 text-sm font-black">{Math.ceil(Number(rechargeAmount) / 2)} ⭐ Stars</span>
+                    </div>
+                  )}
                 </div>
 
-                <button onClick={handleGenerateUpi} disabled={paying || !rechargeAmount}
-                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold py-4 rounded-xl transition-all shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 text-sm">
-                  {paying ? (
-                    <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generating QR…</>
+                {/* Open Telegram Action Button */}
+                <button
+                  onClick={handleOpenTelegram}
+                  disabled={openingTelegram || !rechargeAmount || Number(rechargeAmount) < 200}
+                  className="w-full bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold py-4 rounded-xl transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 text-sm"
+                >
+                  {openingTelegram ? (
+                    <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Opening Telegram…</>
                   ) : (
-                    <><span>📱</span> Proceed to Pay ₹{Number(rechargeAmount || 0).toLocaleString('en-IN')}</>
+                    <>
+                      <span>✈️</span>
+                      <span>Pay {Math.ceil(Number(rechargeAmount || 500) / 2)} Stars (₹{Number(rechargeAmount || 500).toLocaleString('en-IN')}) in Telegram</span>
+                    </>
                   )}
                 </button>
 
-                <div className="flex items-center justify-center gap-2 text-slate-400 text-xs font-medium">
-                  <span>🔒</span><span>Direct UPI Banking · Zero Payment Gateway Fees</span>
+                {/* Option to enter code directly */}
+                <div className="text-center pt-2">
+                  <button
+                    onClick={() => setManualCodeMode(true)}
+                    className="text-xs font-bold text-blue-600 hover:text-blue-800 underline decoration-blue-300"
+                  >
+                    🔑 Already paid in Telegram? Enter your code here →
+                  </button>
                 </div>
               </div>
             ) : (
-              // Step 2: Scan QR & Pay
+              // Step 2: Enter Verification Code from Telegram Bot
               <div className="bg-white rounded-3xl p-6 border border-amber-200 shadow-xl space-y-5 text-center">
-
                 {/* Header */}
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <div className="text-left">
-                    <span className="text-[11px] font-extrabold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 uppercase tracking-wider">
-                      ☀️ Solar Wealth · Scan & Pay
+                    <span className="text-[11px] font-extrabold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200 uppercase tracking-wider">
+                      ✈️ Telegram Stars Verification
                     </span>
-                    <p className="text-slate-900 font-black text-2xl mt-1">₹{Number(activeOrder.amount).toLocaleString('en-IN')}</p>
+                    <p className="text-slate-900 font-black text-2xl mt-1">
+                      {starOrder ? `₹${Number(starOrder.amount).toLocaleString('en-IN')} (${starOrder.starsAmount} ⭐)` : 'Enter Code'}
+                    </p>
                   </div>
                   <button
-                    onClick={() => setActiveOrder(null)}
+                    onClick={() => { setStarOrder(null); setManualCodeMode(false); }}
                     className="text-xs text-slate-500 hover:text-slate-800 font-bold px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-xl transition"
                   >
-                    ✕ Change
+                    ✕ Back
                   </button>
                 </div>
 
-                {/* QR Code */}
-                <div>
-                  <div className="bg-white p-4 rounded-2xl border-2 border-amber-400 shadow-md inline-block mx-auto">
-                    <QRCodeSVG
-                      value={activeOrder.upiUrl}
-                      size={220}
-                      level="M"
-                      includeMargin={true}
-                    />
-                  </div>
+                {/* Step Instructions */}
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left space-y-2 text-xs">
+                  <p className="font-extrabold text-slate-800 flex items-center gap-1.5">
+                    <span>📋</span> <span>Follow these steps:</span>
+                  </p>
+                  <ol className="list-decimal list-inside space-y-1 text-slate-600 font-medium leading-relaxed">
+                    <li>Telegram me <strong>@SolarWealthBot</strong> par invoice pay karein</li>
+                    <li>Payment success hone par bot ek <strong>Unique Verification Code</strong> bhejega</li>
+                    <li>Wo Code niche enter karke <strong>Verify</strong> par tap karein</li>
+                  </ol>
+                  {starOrder?.telegramUrl && (
+                    <div className="pt-2">
+                      <a
+                        href={starOrder.telegramUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs font-extrabold text-blue-600 hover:text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-xl transition"
+                      >
+                        <span>✈️</span> Re-open @SolarWealthBot in Telegram ↗
+                      </a>
+                    </div>
+                  )}
                 </div>
 
-                {/* UTR Entry */}
-                <form onSubmit={handleSubmitUtr} className="space-y-3 pt-3 border-t border-slate-100 text-left">
+                {/* Code Entry Form */}
+                <form onSubmit={handleVerifyStarCode} className="space-y-4 pt-2 border-t border-slate-100 text-left">
                   <div>
                     <label className="text-slate-800 text-xs font-black block mb-1.5">
-                      Payment ke baad UTR / Ref No daalen (12 digits):
+                      🔑 Enter Unique Verification Code from Bot:
                     </label>
                     <input
                       type="text"
-                      inputMode="numeric"
-                      value={utrInput}
-                      onChange={(e) => setUtrInput(e.target.value.replace(/\D/g, '').slice(0, 12))}
-                      placeholder="e.g. 426789123456"
+                      value={starCodeInput}
+                      onChange={(e) => setStarCodeInput(e.target.value.toUpperCase())}
+                      placeholder="e.g. SW7XK9"
                       maxLength={12}
                       required
-                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 font-mono text-base tracking-widest font-bold shadow-inner"
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 font-mono text-lg tracking-widest font-black shadow-inner uppercase text-center"
                     />
-                    <p className="text-[11px] text-slate-500 mt-1.5">
-                      💡 PhonePe / GPay / Paytm payment receipt me <strong>"UPI Ref No"</strong> ya <strong>"UTR"</strong> milega.
+                    <p className="text-[11px] text-slate-400 mt-1.5 text-center">
+                      Code is generated automatically by @SolarWealthBot after Stars payment.
                     </p>
                   </div>
 
                   <button
                     type="submit"
-                    disabled={submittingUtr || !utrInput || utrInput.length < 10}
-                    className="w-full bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-extrabold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-sm"
+                    disabled={verifyingCode || !starCodeInput || starCodeInput.length < 4}
+                    className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 disabled:opacity-50 text-white font-extrabold py-4 rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 text-sm"
                   >
-                    {submittingUtr ? (
-                      <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Verifying…</>
+                    {verifyingCode ? (
+                      <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Verifying Code…</>
                     ) : (
-                      <><span>✓</span> Submit UTR & Add ₹{Number(activeOrder.amount).toLocaleString('en-IN')} to Wallet</>
+                      <><span>✓</span> Verify Code & Add to Wallet</>
                     )}
                   </button>
                 </form>

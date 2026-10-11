@@ -18,6 +18,14 @@ try {
   console.error('[CRON] Failed to initialize cron:', cronErr.message);
 }
 
+// Initialize Telegram Stars Bot
+try {
+  const { initBot } = require('./bot/telegramBot');
+  initBot();
+} catch (botErr) {
+  console.error('[TELEGRAM BOT] Failed to initialize bot:', botErr.message);
+}
+
 const app = express();
 
 app.use(cors({
