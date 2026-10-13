@@ -335,24 +335,25 @@ export default function AdminWithdrawalsPage() {
     );
   });
 
+  const handleOwnerLogout = () => {
+    sessionStorage.removeItem('owner_pin');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 pb-16 text-slate-800 font-sans">
       {/* Executive Owner Header */}
       <div className="bg-slate-900 border-b border-slate-800 px-6 py-5 text-white shadow-lg sticky top-0 z-30">
         <div className="flex items-center justify-between max-w-5xl mx-auto">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate('/profile')}
-              className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-slate-700"
-            >
-              <span>←</span> <span>App</span>
-            </button>
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xl">🛡️</span>
                 <h1 className="text-lg font-black tracking-wide text-white">SolarWealth Command Console</h1>
                 <span className="bg-amber-500/20 text-amber-400 text-[10px] font-black uppercase px-2 py-0.5 rounded-full border border-amber-500/30">
-                  Owner Level
+                  Owner Admin Only
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 font-medium">
@@ -360,22 +361,22 @@ export default function AdminWithdrawalsPage() {
               </p>
             </div>
           </div>
-          {isUnlocked && (
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            {isUnlocked && (
               <button
                 onClick={refreshAll}
                 className="text-xs bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 px-3.5 py-2 rounded-xl font-black flex items-center gap-1.5 transition active:scale-95 shadow-sm"
               >
                 <span>🔄</span> <span>Refresh</span>
               </button>
-              <button
-                onClick={handleLock}
-                className="text-xs bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-2 rounded-xl font-black transition flex items-center gap-1 shadow-sm"
-              >
-                <span>🔒</span> <span>Lock</span>
-              </button>
-            </div>
-          )}
+            )}
+            <button
+              onClick={handleOwnerLogout}
+              className="text-xs bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-2 rounded-xl font-black transition flex items-center gap-1 shadow-sm"
+            >
+              <span>🚪</span> <span>Logout</span>
+            </button>
+          </div>
         </div>
       </div>
 

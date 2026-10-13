@@ -17,17 +17,23 @@ function PrivateRoute({ children }) {
 
 function AppRoutes() {
   const { user } = useAuth();
+  const isOwner = user?.role === 'admin' || user?.email === 'owner@solarwealth.com' || user?.email === 'shakirhusain2021@gmail.com';
+
   return (
     <>
       <DisclaimerModal />
       <Routes>
-        <Route path="/" element={<Navigate to={user ? '/home' : '/login'} replace />} />
-        <Route path="/signup" element={user ? <Navigate to="/home" /> : <SignupPage />} />
-        <Route path="/login" element={user ? <Navigate to="/home" /> : <LoginPage />} />
-        <Route path="/home" element={<PrivateRoute><HomePage /></PrivateRoute>} />
-        <Route path="/plans" element={<PrivateRoute><PlansPage /></PrivateRoute>} />
-        <Route path="/wallet" element={<PrivateRoute><WalletPage /></PrivateRoute>} />
-        <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+        <Route path="/" element={<Navigate to={!user ? '/login' : isOwner ? '/admin/withdrawals' : '/home'} replace />} />
+        <Route path="/signup" element={user ? <Navigate to={isOwner ? '/admin/withdrawals' : '/home'} /> : <SignupPage />} />
+        <Route path="/login" element={user ? <Navigate to={isOwner ? '/admin/withdrawals' : '/home'} /> : <LoginPage />} />
+        
+        {/* User-Only Routes: If Owner tries to access user UI, redirect them directly to Admin Console */}
+        <Route path="/home" element={<PrivateRoute>{isOwner ? <Navigate to="/admin/withdrawals" replace /> : <HomePage />}</PrivateRoute>} />
+        <Route path="/plans" element={<PrivateRoute>{isOwner ? <Navigate to="/admin/withdrawals" replace /> : <PlansPage />}</PrivateRoute>} />
+        <Route path="/wallet" element={<PrivateRoute>{isOwner ? <Navigate to="/admin/withdrawals" replace /> : <WalletPage />}</PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute>{isOwner ? <Navigate to="/admin/withdrawals" replace /> : <ProfilePage />}</PrivateRoute>} />
+        
+        {/* Dedicated Owner Console */}
         <Route path="/admin/withdrawals" element={<PrivateRoute><AdminWithdrawalsPage /></PrivateRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
