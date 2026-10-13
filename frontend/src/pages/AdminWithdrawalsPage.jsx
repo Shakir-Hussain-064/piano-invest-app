@@ -278,18 +278,30 @@ export default function AdminWithdrawalsPage() {
 
   // 5. APPROVE PENDING STAR CODE RECHARGE
   const handleApproveStarCode = async (starPayment) => {
-    const userEmail = window.prompt(
-      `Approve Recharge for Code ${starPayment.code} (₹${starPayment.rupeesAmount}):\nEnter User's Email to credit:`,
-      starPayment.redeemedByUserEmail || ''
-    );
+    let userEmail = starPayment.redeemedByUserEmail;
+    if (!userEmail) {
+      userEmail = window.prompt(
+        `Approve Recharge for Code ${starPayment.code} (₹${starPayment.rupeesAmount}):\nEnter User's Email to credit:`,
+        starPayment.telegramUsername?.includes('@') ? starPayment.telegramUsername : ''
+      );
+    }
     if (!userEmail) return;
 
-    // Find user by email from usersData
-    const matched = (usersData.users || []).find((u) => u.email.toLowerCase() === userEmail.trim().toLowerCase());
+    // Find user by email from usersData or by starPayment.redeemedByUserId
+    let matched = (usersData.users || []).find((u) => u.email.toLowerCase() === userEmail.trim().toLowerCase());
+    if (!matched && starPayment.redeemedByUserId) {
+      matched = (usersData.users || []).find((u) => u._id.toString() === starPayment.redeemedByUserId.toString());
+    }
+
     if (!matched) {
       alert(`User with email "${userEmail}" not found in current directory. Please check email.`);
       return;
     }
+
+    const confirmApprove = window.confirm(
+      `Approve & Credit ₹${starPayment.rupeesAmount.toLocaleString('en-IN')} to user "${matched.name || matched.email}" (${matched.email}) for Code ${starPayment.code}?`
+    );
+    if (!confirmApprove) return;
 
     setActionLoading(starPayment._id);
     try {
@@ -622,16 +634,26 @@ export default function AdminWithdrawalsPage() {
                             </p>
                           </div>
                         ) : (
-                          <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100 flex items-center justify-between gap-2">
-                            <span className="text-[10px] text-slate-500 font-medium">
-                              ⏳ Waiting for user to enter code in app to claim ₹{(p.rupeesAmount || 0).toLocaleString('en-IN')}
-                            </span>
+                          <div className="bg-amber-50/70 rounded-2xl p-3 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                            <div>
+                              <p className="text-amber-900 font-extrabold text-xs flex items-center gap-1.5">
+                                <span className="animate-pulse">🔔</span>
+                                <span>Code Submitted · Waiting for Owner Approval</span>
+                              </p>
+                              <p className="text-[11px] text-slate-600 mt-0.5">
+                                User: <strong className="text-slate-900">{p.redeemedByUserEmail || p.telegramUsername || 'Investor'}</strong>
+                                {p.redeemedByUserName && ` (${p.redeemedByUserName})`}
+                              </p>
+                              <p className="text-[10px] text-amber-700 font-bold mt-0.5">
+                                Value: ₹{(p.rupeesAmount || 0).toLocaleString('en-IN')}
+                              </p>
+                            </div>
                             <button
                               onClick={() => handleApproveStarCode(p)}
                               disabled={actionLoading === p._id}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black px-3 py-1.5 rounded-lg shadow-sm transition disabled:opacity-50 whitespace-nowrap"
+                              className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black px-4 py-2 rounded-xl shadow-md transition disabled:opacity-50 whitespace-nowrap self-end sm:self-center flex items-center gap-1.5 active:scale-95"
                             >
-                              {actionLoading === p._id ? 'Crediting...' : '⚡ Approve Recharge'}
+                              <span>{actionLoading === p._id ? 'Approving...' : '✓ Approve & Credit ₹' + (p.rupeesAmount || 0)}</span>
                             </button>
                           </div>
                         )}
