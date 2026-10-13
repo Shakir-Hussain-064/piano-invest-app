@@ -633,10 +633,10 @@ export default function WalletPage() {
                 </div>
 
                 {myWithdrawals.slice(0, 10).map((req) => (
-                  <div key={req._id} className="bg-white rounded-2xl p-3.5 border border-slate-200/90 shadow-sm flex items-center justify-between gap-3">
-                    <div>
+                  <div key={req._id} className="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-sm space-y-2">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-slate-900 font-black text-sm">₹{req.amount.toLocaleString('en-IN')}</span>
+                        <span className="text-slate-900 font-black text-base">₹{req.amount.toLocaleString('en-IN')}</span>
                         <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${
                           req.status === 'pending'
                             ? 'bg-amber-100 text-amber-800 border border-amber-200'
@@ -644,19 +644,38 @@ export default function WalletPage() {
                             ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                             : 'bg-rose-100 text-rose-800 border border-rose-200'
                         }`}>
-                          {req.status === 'pending' ? '⏳ Pending' : req.status === 'approved' ? '✅ Transferred' : '❌ Refunded'}
+                          {req.status === 'pending' ? '⏳ Pending' : req.status === 'approved' ? '✓ Approved & Settled' : '✕ Refunded'}
                         </span>
                       </div>
-                      <p className="text-slate-500 text-xs mt-1 font-medium">
-                        {req.method === 'upi' ? `UPI: ${req.upiId}` : `Bank: ${req.bankAccount?.bankName || 'A/C'} (****${req.bankAccount?.accountNumber?.slice(-4) || ''})`}
-                      </p>
-                      <p className="text-slate-400 text-[10px] mt-0.5">
+                      <span className="text-slate-400 text-[11px] font-semibold">
                         {new Date(req.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                        {req.status === 'pending' && ' · ⏳ Amount deducted from wallet · Transfer under process by owner'}
-                        {req.status === 'approved' && ` · 🎉 Status: Transferred to your account (${req.paymentRef || 'Transferred'})`}
-                        {req.status === 'rejected' && ` · ❌ Cancelled: ${req.adminNote || 'Amount refunded back to wallet'}`}
-                      </p>
+                      </span>
                     </div>
+
+                    <div className="bg-slate-50 rounded-xl p-3 text-xs space-y-1.5 border border-slate-100">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 font-medium">Payout Mode:</span>
+                        <span className="font-bold text-slate-800">{req.method === 'upi' ? 'UPI Instant Transfer' : 'Bank Transfer (IMPS)'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500 font-medium">{req.method === 'upi' ? 'UPI ID:' : 'Account:'}</span>
+                        <span className="font-semibold text-slate-800 font-mono text-[11px]">
+                          {req.method === 'upi' ? req.upiId : `${req.bankAccount?.bankName || 'Bank'} (••••${req.bankAccount?.accountNumber?.slice(-4) || '••••'})`}
+                        </span>
+                      </div>
+                      {req.paymentRef && (
+                        <div className="flex justify-between">
+                          <span className="text-slate-500 font-medium">Bank Ref (UTR):</span>
+                          <span className="font-bold text-emerald-700 font-mono text-[11px]">{req.paymentRef}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <p className="text-[11px] font-medium pt-1">
+                      {req.status === 'pending' && <span className="text-amber-700">⏳ Verification in progress. Amount will be credited to your account shortly.</span>}
+                      {req.status === 'approved' && <span className="text-emerald-700 font-bold">✓ Amount transferred successfully to your registered payout destination.</span>}
+                      {req.status === 'rejected' && <span className="text-rose-600">✕ {req.adminNote || 'Cancelled: Amount refunded back to wallet.'}</span>}
+                    </p>
                   </div>
                 ))}
               </div>
