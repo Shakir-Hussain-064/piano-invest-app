@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const uri = 'mongodb://Shakir064:Shakir064@ac-miebea6-shard-00-00.df9jmrv.mongodb.net:27017,ac-miebea6-shard-00-01.df9jmrv.mongodb.net:27017,ac-miebea6-shard-00-02.df9jmrv.mongodb.net:27017/?ssl=true&replicaSet=atlas-i8q6z3-shard-0&authSource=admin&appName=Uber-App';
+const uri = 'mongodb://Shakir064:Shakir064@ac-miebea6-shard-00-00.df9jmrv.mongodb.net:27017,ac-miebea6-shard-00-01.df9jmrv.mongodb.net:27017,ac-miebea6-shard-00-02.df9jmrv.mongodb.net:27017/Piano?ssl=true&replicaSet=atlas-i8q6z3-shard-0&authSource=admin&appName=Piano-App';
 
 async function addPlan() {
   try {

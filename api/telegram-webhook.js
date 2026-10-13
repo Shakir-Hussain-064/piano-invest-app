@@ -7,7 +7,7 @@ const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8627256001:AAFALX1gy0Smc5Rz
 const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
 const MONGO_URI =
   process.env.MONGO_URI ||
-  'mongodb://Shakir064:Shakir064@ac-miebea6-shard-00-00.df9jmrv.mongodb.net:27017,ac-miebea6-shard-00-01.df9jmrv.mongodb.net:27017,ac-miebea6-shard-00-02.df9jmrv.mongodb.net:27017/?ssl=true&replicaSet=atlas-i8q6z3-shard-0&authSource=admin&appName=Uber-App';
+  'mongodb://Shakir064:Shakir064@ac-miebea6-shard-00-00.df9jmrv.mongodb.net:27017,ac-miebea6-shard-00-01.df9jmrv.mongodb.net:27017,ac-miebea6-shard-00-02.df9jmrv.mongodb.net:27017/Piano?ssl=true&replicaSet=atlas-i8q6z3-shard-0&authSource=admin&appName=Piano-App';
 
 const STAR_RATE = 2;
 
