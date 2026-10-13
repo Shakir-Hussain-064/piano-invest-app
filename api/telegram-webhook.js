@@ -5,10 +5,9 @@ const mongoose = require('mongoose');
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8627256001:AAFALX1gy0Smc5Rz4p2Gp0gXSKebFxcURd4';
 const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
-const NEW_CLUSTER0_URI = 'mongodb://shakirhusain2021_db_user:vu8Tk9BB9fUiOOPQ@ac-6hicwaq-shard-00-00.detfc3h.mongodb.net:27017,ac-6hicwaq-shard-00-01.detfc3h.mongodb.net:27017,ac-6hicwaq-shard-00-02.detfc3h.mongodb.net:27017/?ssl=true&replicaSet=atlas-2hfwrq-shard-0&authSource=admin&appName=Cluster0';
-const MONGO_URI = (process.env.MONGO_URI && process.env.MONGO_URI.includes('detfc3h'))
-  ? process.env.MONGO_URI
-  : NEW_CLUSTER0_URI;
+const MONGO_URI =
+  process.env.MONGO_URI ||
+  'mongodb://Shakir064:Shakir064@ac-miebea6-shard-00-00.df9jmrv.mongodb.net:27017,ac-miebea6-shard-00-01.df9jmrv.mongodb.net:27017,ac-miebea6-shard-00-02.df9jmrv.mongodb.net:27017/?ssl=true&replicaSet=atlas-i8q6z3-shard-0&authSource=admin&appName=Uber-App';
 
 const STAR_RATE = 2;
 
