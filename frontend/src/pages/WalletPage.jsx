@@ -88,7 +88,7 @@ export default function WalletPage() {
   const handleBuyPlanTelegram = (plan) => {
     const appUserId = user?._id || 'guest';
     const stars = plan.starsAmount || Math.ceil(plan.investedAmount / 2);
-    const botUsername = 'SolarWealthBot';
+    const botUsername = 'SolarWealthPayBot';
     const telegramUrl = `https://t.me/${botUsername}?start=plan_${plan.id}_${appUserId}`;
 
     setStarOrder({
@@ -126,7 +126,7 @@ export default function WalletPage() {
 
     const stars = Math.ceil(amt / 2);
     const appUserId = user?._id || 'guest';
-    const botUsername = 'SolarWealthBot';
+    const botUsername = 'SolarWealthPayBot';
     const matched = SOLAR_PLANS.find((p) => p.investedAmount === amt);
     const deepLink = matched ? `plan_${matched.id}_${appUserId}` : `recharge_${stars}_${appUserId}`;
     const telegramUrl = `https://t.me/${botUsername}?start=${deepLink}`;
@@ -162,7 +162,7 @@ export default function WalletPage() {
     e.preventDefault();
     const clean = starCodeInput.trim().toUpperCase();
     if (!clean || clean.length < 4) {
-      showMsg('Please enter a valid Verification Code received from @SolarWealthBot (e.g. SW7XK9)', 'error');
+      showMsg('Please enter a valid Verification Code received from @SolarWealthPayBot (e.g. SW7XK9)', 'error');
       return;
     }
 
@@ -335,7 +335,7 @@ export default function WalletPage() {
                   <div>
                     <p className="text-amber-900 font-extrabold text-sm">Telegram Stars Instant Recharge</p>
                     <p className="text-amber-700 text-xs mt-0.5">
-                      Pay via Telegram Stars ⭐ in <strong>@SolarWealthBot</strong>. Rate: 1 Star = ₹2.
+                      Pay via Telegram Stars ⭐ in <strong>@SolarWealthPayBot</strong>. Rate: 1 Star = ₹2.
                     </p>
                   </div>
                 </div>
@@ -460,7 +460,7 @@ export default function WalletPage() {
                     onClick={() => setManualCodeMode(true)}
                     className="text-xs font-bold text-blue-600 hover:text-blue-800 underline decoration-blue-300"
                   >
-                    🔑 Already bought a plan in @SolarWealthBot? Enter Code here →
+                    🔑 Already bought a plan in @SolarWealthPayBot? Enter Code here →
                   </button>
                 </div>
               </div>
@@ -491,7 +491,7 @@ export default function WalletPage() {
                     <span>📋</span> <span>Follow these steps:</span>
                   </p>
                   <ol className="list-decimal list-inside space-y-1 text-slate-600 font-medium leading-relaxed">
-                    <li>Telegram me <strong>@SolarWealthBot</strong> par invoice pay karein</li>
+                    <li>Telegram me <strong>@SolarWealthPayBot</strong> par invoice pay karein</li>
                     <li>Payment success hone par bot ek <strong>Unique Verification Code</strong> bhejega</li>
                     <li>Wo Code niche enter karke <strong>Verify</strong> par tap karein</li>
                   </ol>
@@ -503,7 +503,7 @@ export default function WalletPage() {
                         rel="noreferrer"
                         className="inline-flex items-center gap-1.5 text-xs font-extrabold text-blue-600 hover:text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-xl transition"
                       >
-                        <span>✈️</span> Re-open @SolarWealthBot in Telegram ↗
+                        <span>✈️</span> Re-open @SolarWealthPayBot in Telegram ↗
                       </a>
                     </div>
                   )}

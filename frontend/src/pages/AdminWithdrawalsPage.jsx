@@ -470,7 +470,7 @@ export default function AdminWithdrawalsPage() {
                 <div className="text-center py-12 bg-white rounded-3xl border border-slate-200 p-6">
                   <span className="text-4xl block mb-2">⭐</span>
                   <p className="text-slate-800 font-bold">No star codes found</p>
-                  <p className="text-slate-400 text-xs mt-1">Codes will appear here as users pay Telegram Stars in @SolarWealthBot</p>
+                  <p className="text-slate-400 text-xs mt-1">Codes will appear here as users pay Telegram Stars in @SolarWealthPayBot</p>
                 </div>
               ) : (
                 <div className="space-y-3">

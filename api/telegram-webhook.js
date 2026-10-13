@@ -1,9 +1,9 @@
-// Vercel Serverless Function: 24/7 Telegram Webhook for @SolarWealthBot
+// Vercel Serverless Function: 24/7 Telegram Webhook for @SolarWealthPayBot
 // Never sleeps, 100% cloud uptime, responds in <100ms
 
 const mongoose = require('mongoose');
 
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8723665393:AAHbilt8olKbdZrBZfLIMTg2gfQuO6EikeY';
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8627256001:AAFALX1gy0Smc5Rz4p2Gp0gXSKebFxcURd4';
 const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
 const MONGO_URI =
   process.env.MONGO_URI ||

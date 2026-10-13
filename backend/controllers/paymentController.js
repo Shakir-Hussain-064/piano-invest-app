@@ -34,7 +34,7 @@ exports.createTelegramOrder = async (req, res) => {
 
     const starRate = Number(process.env.STAR_RATE) || STAR_RATE || 2;
     const starsAmount = matchedPlan ? matchedPlan.starsAmount : Math.ceil(numAmount / starRate);
-    const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'SolarWealthBot';
+    const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'SolarWealthPayBot';
     const appUserId = req.user._id.toString();
 
     // If specific plan: plan_{planId}_{userId}, otherwise recharge_{stars}_{userId}
@@ -70,7 +70,7 @@ exports.verifyStarCode = async (req, res) => {
     const starPayment = await StarPayment.findOne({ code: cleanCode });
     if (!starPayment) {
       return res.status(404).json({
-        message: 'Invalid Verification Code. Please check the code received from @SolarWealthBot after paying Stars.',
+        message: 'Invalid Verification Code. Please check the code received from @SolarWealthPayBot after paying Stars.',
       });
     }
 
