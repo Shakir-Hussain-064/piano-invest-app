@@ -53,40 +53,40 @@ exports.signup = async (req, res) => {
       lastLogin: new Date(),
     });
 
-    // Initial wallet balance: ₹100 Welcome Bonus if signed up with valid referral code
-    const initialBalance = hasValidReferral ? 100 : 0;
-    const initialTransactions = hasValidReferral
-      ? [{
-          type: 'credit',
-          amount: 100,
-          description: `🎁 Welcome Bonus (Referred by ${referredBy})`,
-          date: new Date(),
-        }]
-      : [];
+    // Initial wallet balance: ₹99 Welcome Bonus for every new user upon signup
+    const initialBalance = 99;
+    const initialTransactions = [{
+      type: 'credit',
+      amount: 99,
+      description: hasValidReferral
+        ? `🎁 Welcome Bonus ₹99 (Referred by ${referredBy})`
+        : '🎁 Welcome Signup Bonus ₹99',
+      date: new Date(),
+    }];
 
     // Create wallet for new user
     await Wallet.create({
       userId: user._id,
       balance: initialBalance,
       recharged: 0,
-      totalEarned: hasValidReferral ? 100 : 0,
-      withdrawableBalance: hasValidReferral ? 100 : 0,
+      totalEarned: 99,
+      withdrawableBalance: 99,
       totalWithdrawn: 0,
       transactions: initialTransactions,
     });
 
-    // Credit referral reward to the referrer (BOTH sides get ₹100 bonus)
+    // Credit referral reward to the referrer (Referrer gets ₹200 bonus)
     if (hasValidReferral && referrer) {
       try {
         const referrerWallet = await Wallet.findOne({ userId: referrer._id });
         if (referrerWallet) {
-          referrerWallet.balance += 100;
-          referrerWallet.totalEarned += 100;
-          referrerWallet.withdrawableBalance = (referrerWallet.withdrawableBalance || 0) + 100;
+          referrerWallet.balance += 200;
+          referrerWallet.totalEarned += 200;
+          referrerWallet.withdrawableBalance = (referrerWallet.withdrawableBalance || 0) + 200;
           referrerWallet.transactions.push({
             type: 'credit',
-            amount: 100,
-            description: `🎁 Referral Reward (Friend joined: ${user.name || user.email})`,
+            amount: 200,
+            description: `🎁 Referral Reward ₹200 (Friend joined: ${user.name || user.email})`,
             date: new Date(),
           });
           await referrerWallet.save();

@@ -94,8 +94,8 @@ export default function ProfilePage() {
             </button>
           </div>
           <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-slate-100">
-            <span className="text-emerald-700 text-xs font-black">🎁 ₹100 Referral Bonus:</span>
-            <span className="text-slate-500 text-[11px] font-medium">Both you & your friend get ₹100 bonus instantly upon signup!</span>
+            <span className="text-emerald-700 text-xs font-black">🎁 ₹200 Referral Bonus:</span>
+            <span className="text-slate-500 text-[11px] font-medium">Earn ₹200 for every friend who joins! They get ₹99 signup bonus instantly.</span>
           </div>
         </div>
       </div>
