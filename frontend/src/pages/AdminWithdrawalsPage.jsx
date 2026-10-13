@@ -564,8 +564,9 @@ export default function AdminWithdrawalsPage() {
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {[
                   { id: 'all', label: `All Codes (${starData.payments?.length || 0})` },
-                  { id: 'pending', label: `Pending (${starData.summary?.pendingCodes || 0})` },
-                  { id: 'verified', label: `Redeemed (${starData.summary?.verifiedCodes || 0})` },
+                  { id: 'pending', label: `Pending Approval (${(starData.payments || []).filter(p => p.status === 'pending').length})` },
+                  { id: 'verified', label: `Approved / Redeemed (${(starData.payments || []).filter(p => p.status === 'verified').length})` },
+                  { id: 'rejected', label: `Rejected (${(starData.payments || []).filter(p => p.status === 'rejected').length})` },
                 ].map((t) => (
                   <button
                     key={t.id}
@@ -631,9 +632,11 @@ export default function AdminWithdrawalsPage() {
                           <span className={`inline-block text-[10px] font-black px-2 py-0.5 rounded-full mt-1 ${
                             p.status === 'verified'
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'bg-amber-50 text-amber-700 border border-amber-200'
+                              : p.status === 'rejected'
+                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                : 'bg-amber-50 text-amber-700 border border-amber-200'
                           }`}>
-                            {p.status === 'verified' ? '✓ Redeemed' : '⏳ Pending'}
+                            {p.status === 'verified' ? '✓ Redeemed' : p.status === 'rejected' ? '✕ Rejected' : '⏳ Pending'}
                           </span>
                         </div>
                       </div>
@@ -648,6 +651,11 @@ export default function AdminWithdrawalsPage() {
                             <p className="text-[10px] text-emerald-600">
                               Redeemed on: {new Date(p.verifiedAt || p.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                             </p>
+                          </div>
+                        ) : p.status === 'rejected' ? (
+                          <div className="bg-rose-50 rounded-xl p-2.5 border border-rose-200 text-rose-800">
+                            <p className="font-extrabold text-[11px]">✕ Code Rejected by Owner</p>
+                            <p className="text-[10px] text-rose-600 mt-0.5">Reason: {p.adminNote || 'Invalid / Unverified'}</p>
                           </div>
                         ) : (
                           <div className="bg-amber-50/70 rounded-2xl p-3 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
