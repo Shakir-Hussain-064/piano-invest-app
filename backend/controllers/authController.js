@@ -75,18 +75,18 @@ exports.signup = async (req, res) => {
       transactions: initialTransactions,
     });
 
-    // Credit referral reward to the referrer (Referrer gets ₹200 bonus)
+    // Credit referral reward to the referrer (Referrer gets ₹150 bonus)
     if (hasValidReferral && referrer) {
       try {
         const referrerWallet = await Wallet.findOne({ userId: referrer._id });
         if (referrerWallet) {
-          referrerWallet.balance += 200;
-          referrerWallet.totalEarned += 200;
-          referrerWallet.withdrawableBalance = (referrerWallet.withdrawableBalance || 0) + 200;
+          referrerWallet.balance += 150;
+          referrerWallet.totalEarned += 150;
+          referrerWallet.withdrawableBalance = (referrerWallet.withdrawableBalance || 0) + 150;
           referrerWallet.transactions.push({
             type: 'credit',
-            amount: 200,
-            description: `🎁 Referral Reward ₹200 (Friend joined: ${user.name || user.email})`,
+            amount: 150,
+            description: `🎁 Referral Reward ₹150 (Friend joined: ${user.name || user.email})`,
             date: new Date(),
           });
           await referrerWallet.save();
@@ -101,11 +101,11 @@ exports.signup = async (req, res) => {
       email: user.email,
       name: user.name,
       referralCode: user.referralCode,
-      welcomeBonus: hasValidReferral ? 100 : 0,
+      welcomeBonus: 99,
       token: generateToken(user._id),
       message: hasValidReferral
-        ? 'Account created! ₹100 Welcome Bonus has been credited to your wallet.'
-        : 'Account created successfully!',
+        ? 'Account created! ₹99 Welcome Bonus credited to your wallet.'
+        : 'Account created! ₹99 Signup Bonus credited to your wallet.',
     });
   } catch (error) {
     console.error('Signup error:', error);

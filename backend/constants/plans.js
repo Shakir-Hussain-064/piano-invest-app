@@ -4,14 +4,14 @@
 const STAR_RATE = 2;
 
 const PLANS = [
-  // ── Standard Solar Plans (60 Days Cycle · 20% Daily Yield = 12x Return) ──────
+  // ── Standard Solar Plans (60 Days Cycle · 15% Daily Yield = 9x Return) ──────
   {
     id: 'starter',
     name: '☀️ Solar Spark 500',
     investedAmount: 500,
     starsAmount: 250,
-    dailyEarn: 100,
-    totalReturn: 6000,
+    dailyEarn: 75, // 15% of 500
+    totalReturn: 4500, // 75 * 60
     totalDays: 60,
     isVip: false,
   },
@@ -20,8 +20,8 @@ const PLANS = [
     name: '☀️ Solar Ray 1000',
     investedAmount: 1000,
     starsAmount: 500,
-    dailyEarn: 200,
-    totalReturn: 12000,
+    dailyEarn: 150, // 15% of 1000
+    totalReturn: 9000, // 150 * 60
     totalDays: 60,
     isVip: false,
   },
@@ -30,8 +30,8 @@ const PLANS = [
     name: '☀️ Solar Panel 2500',
     investedAmount: 2500,
     starsAmount: 1250,
-    dailyEarn: 500,
-    totalReturn: 30000,
+    dailyEarn: 375, // 15% of 2500
+    totalReturn: 22500, // 375 * 60
     totalDays: 60,
     isVip: false,
   },
@@ -40,8 +40,8 @@ const PLANS = [
     name: '☀️ Solar Grid 5000',
     investedAmount: 5000,
     starsAmount: 2500,
-    dailyEarn: 1000,
-    totalReturn: 60000,
+    dailyEarn: 750, // 15% of 5000
+    totalReturn: 45000, // 750 * 60
     totalDays: 60,
     isVip: false,
   },
@@ -50,8 +50,8 @@ const PLANS = [
     name: '☀️ Solar Station 10000',
     investedAmount: 10000,
     starsAmount: 5000,
-    dailyEarn: 2000,
-    totalReturn: 120000,
+    dailyEarn: 1500, // 15% of 10000
+    totalReturn: 90000, // 1500 * 60
     totalDays: 60,
     isVip: false,
   },
@@ -60,20 +60,20 @@ const PLANS = [
     name: '☀️ Solar Park 20000',
     investedAmount: 20000,
     starsAmount: 10000,
-    dailyEarn: 4000,
-    totalReturn: 240000,
+    dailyEarn: 3000, // 15% of 20000
+    totalReturn: 180000, // 3000 * 60
     totalDays: 60,
     isVip: false,
   },
 
-  // ── VIP Solar Mega Plans (Accelerated High Yield · 60 Days) ──────────────────
+  // ── VIP Solar Mega Plans (60 Days Cycle · 15% Daily Yield) ──────────────────
   {
     id: 'vip-20k',
     name: '⚡ VIP Solar SuperGrid 20K',
     investedAmount: 20000,
     starsAmount: 10000,
-    dailyEarn: 6000,
-    totalReturn: 360000,
+    dailyEarn: 3000, // 15% of 20000
+    totalReturn: 180000,
     totalDays: 60,
     isVip: true,
   },
@@ -82,8 +82,8 @@ const PLANS = [
     name: '⚡ VIP Solar UltraPlant 25K',
     investedAmount: 25000,
     starsAmount: 12500,
-    dailyEarn: 8000,
-    totalReturn: 480000,
+    dailyEarn: 3750, // 15% of 25000
+    totalReturn: 225000,
     totalDays: 60,
     isVip: true,
   },
@@ -92,8 +92,8 @@ const PLANS = [
     name: '⚡ VIP Solar PowerHub 30K',
     investedAmount: 30000,
     starsAmount: 15000,
-    dailyEarn: 10000,
-    totalReturn: 600000,
+    dailyEarn: 4500, // 15% of 30000
+    totalReturn: 270000,
     totalDays: 60,
     isVip: true,
   },
@@ -102,8 +102,8 @@ const PLANS = [
     name: '⚡ VIP Solar InfinityGig 40K',
     investedAmount: 40000,
     starsAmount: 20000,
-    dailyEarn: 15000,
-    totalReturn: 900000,
+    dailyEarn: 6000, // 15% of 40000
+    totalReturn: 360000,
     totalDays: 60,
     isVip: true,
   },
@@ -112,8 +112,8 @@ const PLANS = [
     name: '⚡ VIP Gigawatt Empire 50K',
     investedAmount: 50000,
     starsAmount: 25000,
-    dailyEarn: 20000,
-    totalReturn: 1200000,
+    dailyEarn: 7500, // 15% of 50000
+    totalReturn: 450000,
     totalDays: 60,
     isVip: true,
   },
