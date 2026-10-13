@@ -91,6 +91,11 @@ exports.verifyStarCode = async (req, res) => {
           message: '⚠️ This code has already been verified and credited.',
         });
       }
+      if (starPayment.status === 'rejected') {
+        return res.status(400).json({
+          message: `❌ This code was rejected by the team. Reason: ${starPayment.adminNote || 'Invalid / Unverified Code'}`,
+        });
+      }
 
       // Associate submitting user details for owner approval
       starPayment.redeemedByUserId = req.user._id;

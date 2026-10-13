@@ -155,6 +155,7 @@ exports.getMyWithdrawals = async (req, res) => {
 const ADMIN_PIN = process.env.ADMIN_PIN || '7906';
 
 function verifyAdminPin(req) {
+  if (req.user && req.user.role === 'admin') return true;
   const pin = req.headers['x-admin-pin'] || req.query.adminPin;
   return pin === ADMIN_PIN || pin === '7906' || pin === 'solarwealth_admin_2024';
 }
