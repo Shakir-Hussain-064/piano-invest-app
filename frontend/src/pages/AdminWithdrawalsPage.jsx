@@ -312,6 +312,14 @@ export default function AdminWithdrawalsPage() {
       );
       setMessage({ text: `✅ ${data.message}`, type: 'success' });
       fetchStarPayments(pin);
+      fetchUsersAnalytics(pin);
+    } catch (err) {
+      setMessage({ text: err.response?.data?.message || 'Failed to approve code', type: 'error' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   // 6. REJECT PENDING STAR CODE RECHARGE
   const handleRejectStarCode = async (starPayment) => {
     const reason = window.prompt(
@@ -671,6 +679,7 @@ export default function AdminWithdrawalsPage() {
                               <p className="text-[10px] text-amber-700 font-bold mt-0.5">
                                 Value: ₹{(p.rupeesAmount || 0).toLocaleString('en-IN')}
                               </p>
+                            </div>
                             <div className="flex items-center gap-2 self-end sm:self-center">
                               <button
                                 onClick={() => handleApproveStarCode(p)}
