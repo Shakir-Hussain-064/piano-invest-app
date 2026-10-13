@@ -35,14 +35,12 @@ app.use(cors({
 app.use(express.json());
 
 // Safe MongoDB connection
-const mongoUri = process.env.MONGO_URI;
-if (!mongoUri) {
-  console.error('❌ WARNING: MONGO_URI environment variable is missing in Render settings!');
-} else {
-  mongoose.connect(mongoUri)
-    .then(() => console.log('✅ MongoDB Connected successfully'))
-    .catch(err => console.error('❌ MongoDB Connection Error:', err.message));
-}
+const DEFAULT_MONGO_URI = 'mongodb://shakirhusain2021_db_user:vu8Tk9BB9fUiOOPQ@ac-6hicwaq-shard-00-00.detfc3h.mongodb.net:27017,ac-6hicwaq-shard-00-01.detfc3h.mongodb.net:27017,ac-6hicwaq-shard-00-02.detfc3h.mongodb.net:27017/?ssl=true&replicaSet=atlas-2hfwrq-shard-0&authSource=admin&appName=Cluster0';
+const mongoUri = process.env.MONGO_URI || DEFAULT_MONGO_URI;
+
+mongoose.connect(mongoUri)
+  .then(() => console.log('✅ MongoDB Connected successfully to Cluster0'))
+  .catch(err => console.error('❌ MongoDB Connection Error:', err.message));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
