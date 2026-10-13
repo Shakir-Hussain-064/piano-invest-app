@@ -226,6 +226,43 @@ async function handleUpdate(update) {
       return sendPlansMenu(chatId);
     }
 
+    // Special Command: /testcode (Creates real active ₹500 code and sends directly in chat)
+    if (text === '/testcode' || text.startsWith('/test')) {
+      const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const testCode = `SW-SPARK-${rand}`;
+      const tgUsername = from.username || from.first_name || 'Shakir2023';
+
+      try {
+        await StarPayment.create({
+          code: testCode,
+          planId: 'starter',
+          planName: '☀️ Solar Spark 500 (Test Code)',
+          telegramUserId: String(from.id || chatId),
+          telegramUsername: tgUsername,
+          starsAmount: 250,
+          rupeesAmount: 500,
+          telegramPaymentId: 'test_order_' + Date.now(),
+          status: 'pending',
+        });
+
+        const reply =
+          `🎁 *TEST CODE GENERATED (₹500)*\n\n` +
+          `Aapka genuine testing code create ho gaya hai:\n\n` +
+          `🔑 *Code:* \`${testCode}\`\n` +
+          `💰 *Value:* ₹500\n` +
+          `☀️ *Plan:* Solar Spark 500\n\n` +
+          `📱 *Redeem Kaise Karein:*\n` +
+          `1️⃣ Website open karein: https://piano-invest-app-1.vercel.app\n` +
+          `2️⃣ *Wallet* ➔ *Recharge* ➔ *Telegram Code* option me jayein\n` +
+          `3️⃣ Yeh code paste karein: \`${testCode}\`\n` +
+          `4️⃣ Tap *Verify Code* ➔ ₹500 instantly wallet me credit ho jayenge!`;
+
+        return sendMessage(chatId, reply);
+      } catch (e) {
+        console.error('Test code error:', e);
+      }
+    }
+
     // Command: /plans
     if (text === '/plans') {
       return sendPlansMenu(chatId);
