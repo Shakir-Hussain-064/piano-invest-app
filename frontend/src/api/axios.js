@@ -6,7 +6,7 @@ const API_BASE = isLocal
   ? 'http://localhost:5000/api'
   : (import.meta.env.VITE_API_URL && !import.meta.env.VITE_API_URL.startsWith('/')
       ? import.meta.env.VITE_API_URL
-      : 'https://piano-invest-app.onrender.com/api');
+      : 'https://piano-invest-app-yvu0.onrender.com/api');
 
 const API = axios.create({
   baseURL: API_BASE,
@@ -15,7 +15,7 @@ const API = axios.create({
 
 // Pre-warm Render backend on initial app load
 if (typeof window !== 'undefined' && !isLocal) {
-  fetch('https://piano-invest-app.onrender.com/health', { mode: 'cors' }).catch(() => {});
+  fetch('https://piano-invest-app-yvu0.onrender.com/health', { mode: 'cors' }).catch(() => {});
 }
 
 API.interceptors.request.use((config) => {
