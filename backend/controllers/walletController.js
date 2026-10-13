@@ -6,8 +6,36 @@ const StarPayment = require('../models/StarPayment');
 
 exports.getWallet = async (req, res) => {
   try {
-    const wallet = await Wallet.findOne({ userId: req.user._id });
-    if (!wallet) return res.status(404).json({ message: 'Wallet not found' });
+    let wallet = await Wallet.findOne({ userId: req.user._id });
+    if (!wallet) {
+      // Auto-create wallet with ₹99 Welcome Bonus if missing
+      wallet = await Wallet.create({
+        userId: req.user._id,
+        balance: 99,
+        recharged: 0,
+        totalEarned: 99,
+        withdrawableBalance: 99,
+        totalWithdrawn: 0,
+        transactions: [{
+          type: 'credit',
+          amount: 99,
+          description: '🎁 Welcome Signup Bonus ₹99',
+          date: new Date(),
+        }],
+      });
+    } else if (wallet.balance === 0 && (!wallet.transactions || wallet.transactions.length === 0)) {
+      // Ensure existing empty new-user wallets get the ₹99 bonus credited
+      wallet.balance = 99;
+      wallet.totalEarned = 99;
+      wallet.withdrawableBalance = 99;
+      wallet.transactions.push({
+        type: 'credit',
+        amount: 99,
+        description: '🎁 Welcome Signup Bonus ₹99',
+        date: new Date(),
+      });
+      await wallet.save();
+    }
     res.json(wallet);
   } catch (error) {
     res.status(500).json({ message: 'Server error fetching wallet' });
@@ -360,6 +388,88 @@ exports.getStarPaymentsAdmin = async (req, res) => {
   } catch (error) {
     console.error('Error in getStarPaymentsAdmin:', error);
     res.status(500).json({ message: 'Error fetching Star payments: ' + error.message });
+  }
+};
+
+// Admin/Owner: Delete user completely from database
+exports.deleteUserAdmin = async (req, res) => {
+  try {
+    if (!verifyAdminPin(req)) {
+      return res.status(403).json({ message: 'Invalid Admin Security PIN. Access Denied.' });
+    }
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found in database.' });
+    }
+
+    // Clean up user wallet, active plans, and withdrawal requests
+    await Wallet.deleteMany({ userId: id });
+    await ActivePlan.deleteMany({ userId: id });
+    await WithdrawalRequest.deleteMany({ userId: id });
+    await User.findByIdAndDelete(id);
+
+    res.json({ success: true, message: `User ${user.email} successfully deleted from database.` });
+  } catch (error) {
+    console.error('Error in deleteUserAdmin:', error);
+    res.status(500).json({ message: 'Error deleting user: ' + error.message });
+  }
+};
+
+// Admin/Owner: Manually approve a pending recharge (Star Code or UPI Order) and credit user wallet
+exports.approveRechargeAdmin = async (req, res) => {
+  try {
+    if (!verifyAdminPin(req)) {
+      return res.status(403).json({ message: 'Invalid Admin Security PIN. Access Denied.' });
+    }
+    const { code, userId, amount } = req.body;
+
+    if (!userId || !amount) {
+      return res.status(400).json({ message: 'User ID and recharge amount are required.' });
+    }
+
+    const targetUser = await User.findById(userId);
+    if (!targetUser) {
+      return res.status(404).json({ message: 'Target user not found.' });
+    }
+
+    const targetWallet = await Wallet.findOne({ userId });
+    if (!targetWallet) {
+      return res.status(404).json({ message: 'Target user wallet not found.' });
+    }
+
+    const numAmt = Number(amount);
+    targetWallet.balance += numAmt;
+    targetWallet.recharged += numAmt;
+    targetWallet.transactions.push({
+      type: 'credit',
+      amount: numAmt,
+      description: `Solar Recharge Approved by Admin (Code: ${code || 'MANUAL'})`,
+      date: new Date(),
+    });
+    await targetWallet.save();
+
+    // If a StarPayment code exists, mark it as verified
+    if (code) {
+      const sp = await StarPayment.findOne({ code: code.trim().toUpperCase() });
+      if (sp) {
+        sp.status = 'verified';
+        sp.redeemedByUserId = targetUser._id.toString();
+        sp.redeemedByUserEmail = targetUser.email;
+        sp.redeemedByUserName = targetUser.name || '';
+        sp.verifiedAt = new Date();
+        await sp.save();
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Recharge of ₹${numAmt.toLocaleString('en-IN')} approved and credited to ${targetUser.email}!`,
+      newBalance: targetWallet.balance,
+    });
+  } catch (error) {
+    console.error('Error in approveRechargeAdmin:', error);
+    res.status(500).json({ message: 'Error approving recharge: ' + error.message });
   }
 };
 

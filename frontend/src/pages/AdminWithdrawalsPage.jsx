@@ -140,19 +140,8 @@ export default function AdminWithdrawalsPage() {
     }
   }, [pin]);
 
-  // Polling: auto-check for new withdrawal requests, users, and star payments every 10 seconds silently
-  useEffect(() => {
-    if (!pin || !isUnlocked) return;
-    const interval = setInterval(() => {
-      fetchWithdrawalsSilently(pin);
-      if (dashboardTab === 'users') {
-        fetchUsersAnalytics(pin);
-      } else if (dashboardTab === 'starcodes') {
-        fetchStarPayments(pin);
-      }
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [pin, isUnlocked, dashboardTab]);
+  // Auto-refresh disabled: Dashboard will only refresh when Owner clicks the 🔄 Refresh button
+  // No automatic background polling or screen flashing
 
   const handleUnlock = (e) => {
     e.preventDefault();
@@ -176,12 +165,22 @@ export default function AdminWithdrawalsPage() {
     setNotification(null);
   };
 
+  const refreshAll = () => {
+    if (!pin) return;
+    setMessage({ text: '🔄 Refreshing data...', type: 'info' });
+    fetchWithdrawals(pin);
+    fetchUsersAnalytics(pin);
+    fetchStarPayments(pin);
+    setTimeout(() => setMessage({ text: '', type: '' }), 1500);
+  };
+
   const handleCopy = (text, id) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(''), 2000);
   };
 
+  // 1. APPROVE WITHDRAWAL
   const handleApprove = async (id) => {
     const paymentRef = window.prompt(
       'Confirm amount transfer to user account:\nEnter UTR / UPI Reference No (or click OK to confirm):',
@@ -196,6 +195,7 @@ export default function AdminWithdrawalsPage() {
       });
       setMessage({ text: '✅ Amount marked as Transferred to user account successfully!', type: 'success' });
       fetchWithdrawals(pin);
+      fetchUsersAnalytics(pin);
     } catch (err) {
       setMessage({ text: err.response?.data?.message || 'Failed to approve', type: 'error' });
     } finally {
@@ -203,6 +203,7 @@ export default function AdminWithdrawalsPage() {
     }
   };
 
+  // 2. REJECT WITHDRAWAL
   const handleReject = async (id) => {
     const reason = window.prompt('Enter rejection reason (User amount will be refunded):', 'Invalid Bank/UPI Details');
     if (!reason) return;
@@ -214,8 +215,95 @@ export default function AdminWithdrawalsPage() {
       });
       setMessage({ text: data.message || 'Withdrawal rejected & refunded', type: 'success' });
       fetchWithdrawals(pin);
+      fetchUsersAnalytics(pin);
     } catch (err) {
       setMessage({ text: err.response?.data?.message || 'Failed to reject', type: 'error' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // 3. DELETE USER FROM DATABASE
+  const handleDeleteUser = async (user) => {
+    const confirmDelete = window.confirm(
+      `⚠️ ARE YOU SURE?\n\nDo you want to permanently delete user "${user.name || user.email}" (${user.email}) from the database?\n\nTheir wallet, active plans, and withdrawal history will also be deleted!`
+    );
+    if (!confirmDelete) return;
+
+    setActionLoading(user._id);
+    try {
+      const { data } = await API.delete(`/wallet/admin/users/${user._id}`, {
+        headers: { 'x-admin-pin': pin },
+      });
+      setMessage({ text: `🗑️ ${data.message || 'User deleted successfully!'}`, type: 'success' });
+      fetchUsersAnalytics(pin);
+      fetchWithdrawals(pin);
+    } catch (err) {
+      setMessage({ text: err.response?.data?.message || 'Failed to delete user', type: 'error' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // 4. APPROVE RECHARGE MANUALLY
+  const handleApproveRechargeModal = async (targetUser) => {
+    const amtStr = window.prompt(
+      `Approve Recharge for ${targetUser.name || targetUser.email}:\nEnter recharge amount to credit in ₹:`,
+      '500'
+    );
+    if (!amtStr) return;
+    const amount = Number(amtStr);
+    if (!amount || amount <= 0) {
+      alert('Please enter a valid amount.');
+      return;
+    }
+
+    const code = window.prompt('Enter Transaction / Code / UTR (optional):', 'MANUAL_APPROVAL') || 'MANUAL_APPROVAL';
+
+    setActionLoading(targetUser._id);
+    try {
+      const { data } = await API.post(
+        '/wallet/admin/recharge/approve',
+        { userId: targetUser._id, amount, code },
+        { headers: { 'x-admin-pin': pin } }
+      );
+      setMessage({ text: `✅ ${data.message}`, type: 'success' });
+      fetchUsersAnalytics(pin);
+      fetchStarPayments(pin);
+    } catch (err) {
+      setMessage({ text: err.response?.data?.message || 'Failed to approve recharge', type: 'error' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // 5. APPROVE PENDING STAR CODE RECHARGE
+  const handleApproveStarCode = async (starPayment) => {
+    const userEmail = window.prompt(
+      `Approve Recharge for Code ${starPayment.code} (₹${starPayment.rupeesAmount}):\nEnter User's Email to credit:`,
+      starPayment.redeemedByUserEmail || ''
+    );
+    if (!userEmail) return;
+
+    // Find user by email from usersData
+    const matched = (usersData.users || []).find((u) => u.email.toLowerCase() === userEmail.trim().toLowerCase());
+    if (!matched) {
+      alert(`User with email "${userEmail}" not found in current directory. Please check email.`);
+      return;
+    }
+
+    setActionLoading(starPayment._id);
+    try {
+      const { data } = await API.post(
+        '/wallet/admin/recharge/approve',
+        { userId: matched._id, amount: starPayment.rupeesAmount, code: starPayment.code },
+        { headers: { 'x-admin-pin': pin } }
+      );
+      setMessage({ text: `✅ ${data.message}`, type: 'success' });
+      fetchStarPayments(pin);
+      fetchUsersAnalytics(pin);
+    } catch (err) {
+      setMessage({ text: err.response?.data?.message || 'Failed to approve star recharge', type: 'error' });
     } finally {
       setActionLoading(null);
     }
@@ -261,8 +349,8 @@ export default function AdminWithdrawalsPage() {
           </div>
           {isUnlocked && (
             <div className="flex items-center gap-2">
-              <button onClick={() => fetchWithdrawals(pin)} className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-xl font-bold">
-                🔄 Refresh
+              <button onClick={refreshAll} className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 transition active:scale-95">
+                <span>🔄</span> <span>Refresh</span>
               </button>
               <button onClick={handleLock} className="text-xs bg-rose-600/80 hover:bg-rose-700 px-3 py-1.5 rounded-xl font-bold">
                 🔒 Lock
@@ -517,8 +605,17 @@ export default function AdminWithdrawalsPage() {
                             </p>
                           </div>
                         ) : (
-                          <div className="bg-slate-50 rounded-xl p-2 border border-slate-100 text-[10px] text-slate-500">
-                            ⏳ Waiting for user to enter code in app to claim ₹{(p.rupeesAmount || 0).toLocaleString('en-IN')}
+                          <div className="bg-slate-50 rounded-xl p-2.5 border border-slate-100 flex items-center justify-between gap-2">
+                            <span className="text-[10px] text-slate-500 font-medium">
+                              ⏳ Waiting for user to enter code in app to claim ₹{(p.rupeesAmount || 0).toLocaleString('en-IN')}
+                            </span>
+                            <button
+                              onClick={() => handleApproveStarCode(p)}
+                              disabled={actionLoading === p._id}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black px-3 py-1.5 rounded-lg shadow-sm transition disabled:opacity-50 whitespace-nowrap"
+                            >
+                              {actionLoading === p._id ? 'Crediting...' : '⚡ Approve Recharge'}
+                            </button>
                           </div>
                         )}
                         <div className="flex justify-between items-center text-[10px] text-slate-400 pt-1">
@@ -664,6 +761,27 @@ export default function AdminWithdrawalsPage() {
                         <div className="flex items-center justify-between border-t border-slate-100 pt-1 text-[10px]">
                           <span className="text-slate-400">Referral Code: <strong className="text-amber-700 font-mono">{u.referralCode}</strong></span>
                           {u.referredBy && <span className="text-slate-400">Referred By: <strong className="text-slate-700 font-mono">{u.referredBy}</strong></span>}
+                        </div>
+
+                        {/* Owner Actions for User: Approve Recharge & Delete User */}
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleApproveRechargeModal(u)}
+                            disabled={actionLoading === u._id}
+                            className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-black px-3 py-1.5 rounded-xl transition flex items-center gap-1 active:scale-95 disabled:opacity-50"
+                          >
+                            <span>💳</span>
+                            <span>Approve Recharge</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteUser(u)}
+                            disabled={actionLoading === u._id || u.role === 'admin'}
+                            className="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-black px-3 py-1.5 rounded-xl transition flex items-center gap-1 active:scale-95 disabled:opacity-50"
+                          >
+                            <span>🗑️</span>
+                            <span>Delete User</span>
+                          </button>
                         </div>
                       </div>
                     </div>
