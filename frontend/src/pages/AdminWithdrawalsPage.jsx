@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
-import BottomNav from '../components/BottomNav';
 
 export default function AdminWithdrawalsPage() {
   const navigate = useNavigate();
@@ -337,41 +336,58 @@ export default function AdminWithdrawalsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-28 text-slate-800">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-5 pt-8 pb-6 text-white shadow-md">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <button onClick={() => navigate('/profile')} className="p-2 bg-white/20 rounded-xl hover:bg-white/30 text-sm">
-              ← Back
+    <div className="min-h-screen bg-slate-100 pb-16 text-slate-800 font-sans">
+      {/* Executive Owner Header */}
+      <div className="bg-slate-900 border-b border-slate-800 px-6 py-5 text-white shadow-lg sticky top-0 z-30">
+        <div className="flex items-center justify-between max-w-5xl mx-auto">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/profile')}
+              className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-slate-700"
+            >
+              <span>←</span> <span>App</span>
             </button>
-            <h1 className="text-xl font-black">Owner Panel 👑</h1>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🛡️</span>
+                <h1 className="text-lg font-black tracking-wide text-white">SolarWealth Command Console</h1>
+                <span className="bg-amber-500/20 text-amber-400 text-[10px] font-black uppercase px-2 py-0.5 rounded-full border border-amber-500/30">
+                  Owner Level
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 font-medium">
+                Privileged System Administration · User Directory & Financial Settlements
+              </p>
+            </div>
           </div>
           {isUnlocked && (
             <div className="flex items-center gap-2">
-              <button onClick={refreshAll} className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 transition active:scale-95">
+              <button
+                onClick={refreshAll}
+                className="text-xs bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 px-3.5 py-2 rounded-xl font-black flex items-center gap-1.5 transition active:scale-95 shadow-sm"
+              >
                 <span>🔄</span> <span>Refresh</span>
               </button>
-              <button onClick={handleLock} className="text-xs bg-rose-600/80 hover:bg-rose-700 px-3 py-1.5 rounded-xl font-bold">
-                🔒 Lock
+              <button
+                onClick={handleLock}
+                className="text-xs bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-2 rounded-xl font-black transition flex items-center gap-1 shadow-sm"
+              >
+                <span>🔒</span> <span>Lock</span>
               </button>
             </div>
           )}
         </div>
-        <p className="text-xs text-amber-100 mt-2 font-medium">
-          Owner Portal for processing payouts to users directly from your UPI / Bank App.
-        </p>
       </div>
 
       {/* PIN LOCK SCREEN (If not unlocked) */}
       {!isUnlocked ? (
-        <div className="mx-4 mt-8 bg-white rounded-3xl p-6 border border-amber-200 shadow-xl text-center space-y-4 max-w-sm mx-auto">
-          <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-3xl mx-auto shadow-sm">
+        <div className="mx-4 mt-12 bg-white rounded-3xl p-8 border border-slate-200 shadow-2xl text-center space-y-5 max-w-md mx-auto">
+          <div className="w-16 h-16 bg-slate-900 text-amber-400 rounded-2xl flex items-center justify-center text-3xl mx-auto shadow-md border border-slate-800">
             🔐
           </div>
           <div>
-            <h2 className="text-lg font-black text-slate-900">Owner Access Only</h2>
-            <p className="text-xs text-slate-500 mt-1">Enter your 4-digit Owner Security PIN to unlock user withdrawal requests.</p>
+            <h2 className="text-xl font-black text-slate-900">Admin Authentication Required</h2>
+            <p className="text-xs text-slate-500 mt-1">Enter authorized Owner Security PIN to access platform records & banking controls.</p>
           </div>
 
           {pinError && (
@@ -947,8 +963,6 @@ export default function AdminWithdrawalsPage() {
           )}
         </>
       )}
-
-      <BottomNav />
     </div>
   );
 }

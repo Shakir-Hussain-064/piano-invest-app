@@ -26,11 +26,19 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
-// Friendly error handler for network/timeout errors during cold starts
+// Friendly error handler for network/timeout errors and auto-logout on user deletion
 API.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (!error.response && error.code === 'ECONNABORTED') {
+    if (error.response && error.response.status === 401) {
+      const data = error.response.data;
+      if (data && (data.code === 'USER_DELETED' || data.message?.includes('deleted'))) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        alert('Your account has been deleted by Admin. Logging out.');
+        window.location.href = '/login';
+      }
+    } else if (!error.response && error.code === 'ECONNABORTED') {
       error.message = 'Server took too long to respond. The cloud server is waking up, please retry in 10 seconds.';
     } else if (!error.response && error.message === 'Network Error') {
       error.message = 'Unable to reach the server. The cloud server is starting up, please wait a moment and try again.';
