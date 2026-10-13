@@ -75,14 +75,16 @@ async function creditDailyEarnings() {
   }
 }
 
-// ── Schedule: every 6 hours so Render free tier can't miss it ──────────────
-// Even if server was sleeping at midnight, it will catch up at 6am / 12pm / 6pm
-// The isSameDay guard prevents double-credit within the same calendar day.
-cron.schedule('0 */6 * * *', creditDailyEarnings);
+// ── Schedule: Strictly at 00:00 Midnight IST (18:30 UTC) once per day ─────
+// Never runs on server startup, never runs at daytime.
+// Only fires once at 00:00 Midnight!
+cron.schedule('30 18 * * *', () => {
+  console.log('[CRON] Midnight 00:00 IST reached. Running daily yield credit...');
+  creditDailyEarnings();
+}, {
+  timezone: 'Asia/Kolkata'
+});
 
-// Also run once at startup (catches any missed credits if server just restarted)
-setTimeout(creditDailyEarnings, 5000);
-
-console.log('[CRON] Daily earnings scheduler initialized (every 6h + startup run)');
+console.log('[CRON] Daily earnings scheduler set: Strictly at 00:00 Midnight IST');
 
 module.exports = { creditDailyEarnings };
