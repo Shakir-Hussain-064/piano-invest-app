@@ -12,6 +12,7 @@ const {
   getStarPaymentsAdmin,
   deleteUserAdmin,
   approveRechargeAdmin,
+  rejectRechargeAdmin,
 } = require('../controllers/walletController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -28,5 +29,6 @@ router.get('/admin/users-analytics',         protect, getUsersAnalyticsAdmin);
 router.get('/admin/star-payments',           protect, getStarPaymentsAdmin);
 router.delete('/admin/users/:id',            protect, deleteUserAdmin);
 router.post('/admin/recharge/approve',       protect, approveRechargeAdmin);
+router.post('/admin/recharge/reject',        protect, rejectRechargeAdmin);
 
 module.exports = router;

@@ -312,9 +312,25 @@ export default function AdminWithdrawalsPage() {
       );
       setMessage({ text: `✅ ${data.message}`, type: 'success' });
       fetchStarPayments(pin);
-      fetchUsersAnalytics(pin);
+  // 6. REJECT PENDING STAR CODE RECHARGE
+  const handleRejectStarCode = async (starPayment) => {
+    const reason = window.prompt(
+      `Reject Code ${starPayment.code}?\nEnter rejection reason:`,
+      'Invalid / Fake / Unverified Code'
+    );
+    if (!reason) return;
+
+    setActionLoading(starPayment._id);
+    try {
+      const { data } = await API.post(
+        '/wallet/admin/recharge/reject',
+        { code: starPayment.code, reason },
+        { headers: { 'x-admin-pin': pin } }
+      );
+      setMessage({ text: `🚫 ${data.message}`, type: 'success' });
+      fetchStarPayments(pin);
     } catch (err) {
-      setMessage({ text: err.response?.data?.message || 'Failed to approve star recharge', type: 'error' });
+      setMessage({ text: err.response?.data?.message || 'Failed to reject code', type: 'error' });
     } finally {
       setActionLoading(null);
     }
@@ -647,14 +663,22 @@ export default function AdminWithdrawalsPage() {
                               <p className="text-[10px] text-amber-700 font-bold mt-0.5">
                                 Value: ₹{(p.rupeesAmount || 0).toLocaleString('en-IN')}
                               </p>
+                            <div className="flex items-center gap-2 self-end sm:self-center">
+                              <button
+                                onClick={() => handleApproveStarCode(p)}
+                                disabled={actionLoading === p._id}
+                                className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black px-4 py-2 rounded-xl shadow-md transition disabled:opacity-50 whitespace-nowrap flex items-center gap-1.5 active:scale-95"
+                              >
+                                <span>{actionLoading === p._id ? 'Approving...' : '✓ Approve & Credit ₹' + (p.rupeesAmount || 0)}</span>
+                              </button>
+                              <button
+                                onClick={() => handleRejectStarCode(p)}
+                                disabled={actionLoading === p._id}
+                                className="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-black px-3 py-2 rounded-xl transition disabled:opacity-50 whitespace-nowrap flex items-center gap-1 active:scale-95"
+                              >
+                                <span>✕</span> <span>Reject</span>
+                              </button>
                             </div>
-                            <button
-                              onClick={() => handleApproveStarCode(p)}
-                              disabled={actionLoading === p._id}
-                              className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black px-4 py-2 rounded-xl shadow-md transition disabled:opacity-50 whitespace-nowrap self-end sm:self-center flex items-center gap-1.5 active:scale-95"
-                            >
-                              <span>{actionLoading === p._id ? 'Approving...' : '✓ Approve & Credit ₹' + (p.rupeesAmount || 0)}</span>
-                            </button>
                           </div>
                         )}
                         <div className="flex justify-between items-center text-[10px] text-slate-400 pt-1">

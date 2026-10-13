@@ -473,3 +473,34 @@ exports.approveRechargeAdmin = async (req, res) => {
   }
 };
 
+// Admin/Owner: Reject a submitted recharge code
+exports.rejectRechargeAdmin = async (req, res) => {
+  try {
+    if (!verifyAdminPin(req)) {
+      return res.status(403).json({ message: 'Invalid Admin Security PIN. Access Denied.' });
+    }
+    const { code, reason } = req.body;
+    if (!code) {
+      return res.status(400).json({ message: 'Code is required.' });
+    }
+
+    const cleanCode = code.trim().toUpperCase();
+    const sp = await StarPayment.findOne({ code: cleanCode });
+    if (!sp) {
+      return res.status(404).json({ message: 'Recharge code record not found.' });
+    }
+
+    sp.status = 'rejected';
+    sp.adminNote = reason || 'Rejected by Admin';
+    await sp.save();
+
+    res.json({
+      success: true,
+      message: `Code ${cleanCode} has been REJECTED. Reason: ${sp.adminNote}`,
+    });
+  } catch (error) {
+    console.error('Error in rejectRechargeAdmin:', error);
+    res.status(500).json({ message: 'Error rejecting recharge: ' + error.message });
+  }
+};
+
