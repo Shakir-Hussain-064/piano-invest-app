@@ -1,6 +1,7 @@
 const ActivePlan = require('../models/ActivePlan');
 const Wallet = require('../models/Wallet');
 const { PLANS } = require('../constants/plans');
+const { reconcileDailyEarningsForUser } = require('../cron/dailyEarnings');
 
 exports.getPlans = (req, res) => {
   res.json(PLANS);
@@ -21,10 +22,14 @@ exports.buyPlan = async (req, res) => {
 
     // Deduct from wallet
     wallet.balance -= plan.investedAmount;
+    if (wallet.withdrawableBalance > wallet.balance) {
+      wallet.withdrawableBalance = wallet.balance;
+    }
     wallet.transactions.push({
       type: 'debit',
       amount: plan.investedAmount,
       description: `Purchased ${plan.name} Plan`,
+      date: new Date(),
     });
     await wallet.save();
 
@@ -38,20 +43,29 @@ exports.buyPlan = async (req, res) => {
       dailyEarn: plan.dailyEarn,
       totalReturn: plan.totalReturn,
       totalDays: plan.totalDays,
+      daysCompleted: 0,
+      earnedSoFar: 0,
+      startDate: new Date(),
+      lastCreditDate: null,
+      isComplete: false,
     });
 
     res.status(201).json({ message: 'Plan purchased successfully!', activePlan });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error buying plan' });
+    console.error('buyPlan error:', error);
+    res.status(500).json({ message: 'Server error buying plan: ' + error.message });
   }
 };
 
 exports.getMyPlans = async (req, res) => {
   try {
+    // Reconcile daily earnings for this user before fetching
+    await reconcileDailyEarningsForUser(req.user._id);
+
     const plans = await ActivePlan.find({ userId: req.user._id }).sort({ startDate: -1 });
     res.json(plans);
   } catch (error) {
-    res.status(500).json({ message: 'Server error fetching plans' });
+    console.error('getMyPlans error:', error);
+    res.status(500).json({ message: 'Server error fetching plans: ' + error.message });
   }
 };

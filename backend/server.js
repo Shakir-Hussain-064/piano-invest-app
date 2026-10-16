@@ -85,7 +85,7 @@ app.use('/api/payment', paymentRoutes);
 
 // Keep-alive: self-ping every 10 minutes to prevent Render free tier spin-down
 // This ensures the bot and server stay awake 24/7 even when idle
-const BACKEND_URL = process.env.BACKEND_URL || 'https://piano-invest-app.onrender.com';
+const BACKEND_URL = process.env.BACKEND_URL || 'https://piano-invest-app-yvu0.onrender.com';
 if (BACKEND_URL && !BACKEND_URL.includes('localhost')) {
   setInterval(() => {
     try {

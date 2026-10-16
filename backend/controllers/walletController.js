@@ -3,9 +3,13 @@ const User = require('../models/User');
 const WithdrawalRequest = require('../models/WithdrawalRequest');
 const ActivePlan = require('../models/ActivePlan');
 const StarPayment = require('../models/StarPayment');
+const { reconcileDailyEarningsForUser, reconcileAllDailyEarnings } = require('../cron/dailyEarnings');
 
 exports.getWallet = async (req, res) => {
   try {
+    // Reconcile daily earnings for this user before fetching wallet
+    await reconcileDailyEarningsForUser(req.user._id);
+
     let wallet = await Wallet.findOne({ userId: req.user._id });
     if (!wallet) {
       // Auto-create wallet with ₹99 Welcome Bonus if missing
@@ -283,6 +287,9 @@ exports.getUsersAnalyticsAdmin = async (req, res) => {
     if (!isAuthorized) {
       return res.status(403).json({ message: 'Owner access only. Access denied.' });
     }
+
+    // Reconcile platform-wide earnings before generating analytics
+    await reconcileAllDailyEarnings();
 
     const users = await User.find().select('-password').sort({ createdAt: -1 });
     const wallets = await Wallet.find();

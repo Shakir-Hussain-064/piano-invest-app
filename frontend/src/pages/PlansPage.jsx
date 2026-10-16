@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import PlanCard from '../components/PlanCard';
 import API from '../api/axios';
 
 export default function PlansPage() {
+  const navigate = useNavigate();
   const [plans, setPlans] = useState([]);
   const [myPlans, setMyPlans] = useState([]);
   const [wallet, setWallet] = useState(null);
@@ -37,6 +39,7 @@ export default function PlansPage() {
     try {
       const { data } = await API.post('/plans/buy', { planId: plan.id });
       setMessage({ text: data.message, type: 'success' });
+      setActiveTab('my');
       fetchData();
     } catch (err) {
       setMessage({ text: err.response?.data?.message || 'Purchase failed', type: 'error' });
@@ -57,9 +60,15 @@ export default function PlansPage() {
           </h1>
           <p className="text-amber-600 font-bold text-xs mt-0.5">60 Days Solar Cycles · Daily Power Dividends</p>
         </div>
-        <div className="text-right">
-          <p className="text-slate-400 text-xs font-semibold">Wallet Balance</p>
-          <p className="text-amber-600 font-black text-lg">₹{wallet?.balance?.toLocaleString() || '0'}</p>
+        <div className="text-right flex flex-col items-end">
+          <p className="text-slate-400 text-[11px] font-semibold">Wallet Balance</p>
+          <p className="text-amber-600 font-black text-lg leading-tight">₹{wallet?.balance?.toLocaleString() || '0'}</p>
+          <button
+            onClick={() => navigate('/wallet')}
+            className="text-[10px] font-black text-amber-800 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-2.5 py-0.5 rounded-full mt-1 transition"
+          >
+            + Recharge
+          </button>
         </div>
       </div>
 

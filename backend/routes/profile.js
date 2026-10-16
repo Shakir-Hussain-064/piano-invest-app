@@ -4,9 +4,13 @@ const { protect } = require('../middleware/authMiddleware');
 const User = require('../models/User');
 const ActivePlan = require('../models/ActivePlan');
 const Wallet = require('../models/Wallet');
+const { reconcileDailyEarningsForUser } = require('../cron/dailyEarnings');
 
 router.get('/', protect, async (req, res) => {
   try {
+    // Reconcile daily earnings for this user before fetching profile
+    await reconcileDailyEarningsForUser(req.user._id);
+
     const user = await User.findById(req.user._id).select('-password');
     let wallet = await Wallet.findOne({ userId: req.user._id });
     if (!wallet) {
