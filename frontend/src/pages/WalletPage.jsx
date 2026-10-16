@@ -5,13 +5,13 @@ import API from '../api/axios';
 import { QRCodeSVG } from 'qrcode.react';
 
 const SOLAR_PLANS = [
-  // ── Standard Solar Plans (60 Days Cycle · 15% Daily Yield = 9x Return) ──────
-  { id: 'starter',  name: '☀️ Solar Spark 500',        investedAmount: 500,   starsAmount: 250,   dailyEarn: 75,   totalReturn: 4500,   totalDays: 60, isVip: false },
-  { id: 'basic',    name: '☀️ Solar Ray 1000',          investedAmount: 1000,  starsAmount: 500,   dailyEarn: 150,  totalReturn: 9000,   totalDays: 60, isVip: false },
-  { id: 'silver',   name: '☀️ Solar Panel 2500',        investedAmount: 2500,  starsAmount: 1250,  dailyEarn: 375,  totalReturn: 22500,  totalDays: 60, isVip: false },
-  { id: 'gold',     name: '☀️ Solar Grid 5000',         investedAmount: 5000,  starsAmount: 2500,  dailyEarn: 750,  totalReturn: 45000,  totalDays: 60, isVip: false },
-  { id: 'platinum', name: '☀️ Solar Station 10000',     investedAmount: 10000, starsAmount: 5000,  dailyEarn: 1500, totalReturn: 90000,  totalDays: 60, isVip: false },
-  { id: 'diamond',  name: '☀️ Solar Park 20000',        investedAmount: 20000, starsAmount: 10000, dailyEarn: 3000, totalReturn: 180000, totalDays: 60, isVip: false },
+  // ── Standard Solar Plans (45 Days Cycle · 15% Daily Yield = 6.75x Return) ────
+  { id: 'starter',  name: '☀️ Solar Spark 500',        investedAmount: 500,   starsAmount: 250,   dailyEarn: 75,   totalReturn: 3375,   totalDays: 45, isVip: false },
+  { id: 'basic',    name: '☀️ Solar Ray 1000',          investedAmount: 1000,  starsAmount: 500,   dailyEarn: 150,  totalReturn: 6750,   totalDays: 45, isVip: false },
+  { id: 'silver',   name: '☀️ Solar Panel 2500',        investedAmount: 2500,  starsAmount: 1250,  dailyEarn: 375,  totalReturn: 16875,  totalDays: 45, isVip: false },
+  { id: 'gold',     name: '☀️ Solar Grid 5000',         investedAmount: 5000,  starsAmount: 2500,  dailyEarn: 750,  totalReturn: 33750,  totalDays: 45, isVip: false },
+  { id: 'platinum', name: '☀️ Solar Station 10000',     investedAmount: 10000, starsAmount: 5000,  dailyEarn: 1500, totalReturn: 67500,  totalDays: 45, isVip: false },
+  { id: 'diamond',  name: '☀️ Solar Park 20000',        investedAmount: 20000, starsAmount: 10000, dailyEarn: 3000, totalReturn: 135000, totalDays: 45, isVip: false },
 
   // ── VIP Solar Mega Plans (60 Days Cycle · 15% Daily Yield) ──────────────────
   { id: 'vip-20k',  name: '⚡ VIP Solar SuperGrid 20K',     investedAmount: 20000, starsAmount: 10000, dailyEarn: 3000,  totalReturn: 180000,  totalDays: 60, isVip: true },
@@ -399,7 +399,7 @@ export default function WalletPage() {
                         <div>
                           <h4 className="font-extrabold text-sm text-slate-900">{plan.name}</h4>
                           <p className="text-[11px] text-emerald-700 font-bold mt-0.5">
-                            ₹{plan.dailyEarn.toLocaleString('en-IN')}/day · Total Return: ₹{plan.totalReturn.toLocaleString('en-IN')} (60 Days)
+                            ₹{plan.dailyEarn.toLocaleString('en-IN')}/day · Total Return: ₹{plan.totalReturn.toLocaleString('en-IN')} ({plan.totalDays} Days)
                           </p>
                         </div>
                         <span className="bg-amber-50 text-amber-800 border border-amber-200 font-black text-xs px-2.5 py-1 rounded-full whitespace-nowrap">

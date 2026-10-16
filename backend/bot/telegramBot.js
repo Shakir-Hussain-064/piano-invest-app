@@ -78,13 +78,13 @@ async function sendPlansMenu(chatId, appUserId = 'guest') {
   let msg = `☀️ *WELCOME TO SOLAR WEALTH INVESTMENT PLANS!*\n\n`;
   msg += `Aap Telegram Stars ⭐ se koi bhi plan buy kar sakte hain. Buy karne par aapko ek *Unique Code* milega jise app me enter karke aapke wallet me money add ho jayegi!\n\n`;
 
-  msg += `📋 *STANDARD PLANS (60 Days · 15% Daily Yield):*\n`;
+  msg += `📋 *STANDARD PLANS (45 Days · 15% Daily Yield):*\n`;
   const standardPlans = PLANS.filter((p) => !p.isVip);
   standardPlans.forEach((p) => {
     msg += `• *${p.name}*: ₹${p.investedAmount.toLocaleString('en-IN')} (${p.starsAmount} ⭐) → Earn ₹${p.dailyEarn}/day\n`;
   });
 
-  msg += `\n⚡ *VIP MEGA PLANS (15% Daily Yield):*\n`;
+  msg += `\n⚡ *VIP MEGA PLANS (60 Days · 15% Daily Yield):*\n`;
   const vipPlans = PLANS.filter((p) => p.isVip);
   vipPlans.forEach((p) => {
     msg += `• *${p.name}*: ₹${p.investedAmount.toLocaleString('en-IN')} (${p.starsAmount} ⭐) → Earn ₹${p.dailyEarn}/day\n`;

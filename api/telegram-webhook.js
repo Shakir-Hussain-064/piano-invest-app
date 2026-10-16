@@ -12,12 +12,12 @@ const MONGO_URI =
 const STAR_RATE = 2;
 
 const PLANS = [
-  { id: 'starter', name: '☀️ Solar Spark 500', investedAmount: 500, starsAmount: 250, dailyEarn: 75, totalReturn: 4500, totalDays: 60, isVip: false },
-  { id: 'basic', name: '☀️ Solar Ray 1000', investedAmount: 1000, starsAmount: 500, dailyEarn: 150, totalReturn: 9000, totalDays: 60, isVip: false },
-  { id: 'silver', name: '☀️ Solar Panel 2500', investedAmount: 2500, starsAmount: 1250, dailyEarn: 375, totalReturn: 22500, totalDays: 60, isVip: false },
-  { id: 'gold', name: '☀️ Solar Grid 5000', investedAmount: 5000, starsAmount: 2500, dailyEarn: 750, totalReturn: 45000, totalDays: 60, isVip: false },
-  { id: 'platinum', name: '☀️ Solar Station 10000', investedAmount: 10000, starsAmount: 5000, dailyEarn: 1500, totalReturn: 90000, totalDays: 60, isVip: false },
-  { id: 'diamond', name: '☀️ Solar Park 20000', investedAmount: 20000, starsAmount: 10000, dailyEarn: 3000, totalReturn: 180000, totalDays: 60, isVip: false },
+  { id: 'starter', name: '☀️ Solar Spark 500', investedAmount: 500, starsAmount: 250, dailyEarn: 75, totalReturn: 3375, totalDays: 45, isVip: false },
+  { id: 'basic', name: '☀️ Solar Ray 1000', investedAmount: 1000, starsAmount: 500, dailyEarn: 150, totalReturn: 6750, totalDays: 45, isVip: false },
+  { id: 'silver', name: '☀️ Solar Panel 2500', investedAmount: 2500, starsAmount: 1250, dailyEarn: 375, totalReturn: 16875, totalDays: 45, isVip: false },
+  { id: 'gold', name: '☀️ Solar Grid 5000', investedAmount: 5000, starsAmount: 2500, dailyEarn: 750, totalReturn: 33750, totalDays: 45, isVip: false },
+  { id: 'platinum', name: '☀️ Solar Station 10000', investedAmount: 10000, starsAmount: 5000, dailyEarn: 1500, totalReturn: 67500, totalDays: 45, isVip: false },
+  { id: 'diamond', name: '☀️ Solar Park 20000', investedAmount: 20000, starsAmount: 10000, dailyEarn: 3000, totalReturn: 135000, totalDays: 45, isVip: false },
   { id: 'vip-20k', name: '⚡ VIP Solar SuperGrid 20K', investedAmount: 20000, starsAmount: 10000, dailyEarn: 3000, totalReturn: 180000, totalDays: 60, isVip: true },
   { id: 'vip-25k', name: '⚡ VIP Solar UltraPlant 25K', investedAmount: 25000, starsAmount: 12500, dailyEarn: 3750, totalReturn: 225000, totalDays: 60, isVip: true },
   { id: 'vip-30k', name: '⚡ VIP Solar PowerHub 30K', investedAmount: 30000, starsAmount: 15000, dailyEarn: 4500, totalReturn: 270000, totalDays: 60, isVip: true },

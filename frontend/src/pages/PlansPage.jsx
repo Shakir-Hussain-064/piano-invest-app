@@ -58,7 +58,7 @@ export default function PlansPage() {
           <h1 className="text-xl font-extrabold text-slate-900 flex items-center gap-1.5">
             <span>☀️</span> Solar Plans
           </h1>
-          <p className="text-amber-600 font-bold text-xs mt-0.5">60 Days Solar Cycles · Daily Power Dividends</p>
+          <p className="text-amber-600 font-bold text-xs mt-0.5">45 & 60 Days Solar Cycles · Daily Power Dividends</p>
         </div>
         <div className="text-right flex flex-col items-end">
           <p className="text-slate-400 text-[11px] font-semibold">Wallet Balance</p>
@@ -92,7 +92,7 @@ export default function PlansPage() {
             activeTab === 'standard' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          ☀️ Standard (60D)
+          ☀️ Standard (45D)
         </button>
         <button
           onClick={() => setActiveTab('vip')}
@@ -100,7 +100,7 @@ export default function PlansPage() {
             activeTab === 'vip' ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          ⚡ VIP Mega
+          ⚡ VIP Mega (60D)
         </button>
         <button
           onClick={() => setActiveTab('my')}

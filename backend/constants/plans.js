@@ -4,15 +4,15 @@
 const STAR_RATE = 2;
 
 const PLANS = [
-  // ── Standard Solar Plans (60 Days Cycle · 15% Daily Yield = 9x Return) ──────
+  // ── Standard Solar Plans (45 Days Cycle · 15% Daily Yield = 6.75x Return) ────
   {
     id: 'starter',
     name: '☀️ Solar Spark 500',
     investedAmount: 500,
     starsAmount: 250,
     dailyEarn: 75, // 15% of 500
-    totalReturn: 4500, // 75 * 60
-    totalDays: 60,
+    totalReturn: 3375, // 75 * 45
+    totalDays: 45,
     isVip: false,
   },
   {
@@ -21,8 +21,8 @@ const PLANS = [
     investedAmount: 1000,
     starsAmount: 500,
     dailyEarn: 150, // 15% of 1000
-    totalReturn: 9000, // 150 * 60
-    totalDays: 60,
+    totalReturn: 6750, // 150 * 45
+    totalDays: 45,
     isVip: false,
   },
   {
@@ -31,8 +31,8 @@ const PLANS = [
     investedAmount: 2500,
     starsAmount: 1250,
     dailyEarn: 375, // 15% of 2500
-    totalReturn: 22500, // 375 * 60
-    totalDays: 60,
+    totalReturn: 16875, // 375 * 45
+    totalDays: 45,
     isVip: false,
   },
   {
@@ -41,8 +41,8 @@ const PLANS = [
     investedAmount: 5000,
     starsAmount: 2500,
     dailyEarn: 750, // 15% of 5000
-    totalReturn: 45000, // 750 * 60
-    totalDays: 60,
+    totalReturn: 33750, // 750 * 45
+    totalDays: 45,
     isVip: false,
   },
   {
@@ -51,8 +51,8 @@ const PLANS = [
     investedAmount: 10000,
     starsAmount: 5000,
     dailyEarn: 1500, // 15% of 10000
-    totalReturn: 90000, // 1500 * 60
-    totalDays: 60,
+    totalReturn: 67500, // 1500 * 45
+    totalDays: 45,
     isVip: false,
   },
   {
@@ -61,8 +61,8 @@ const PLANS = [
     investedAmount: 20000,
     starsAmount: 10000,
     dailyEarn: 3000, // 15% of 20000
-    totalReturn: 180000, // 3000 * 60
-    totalDays: 60,
+    totalReturn: 135000, // 3000 * 45
+    totalDays: 45,
     isVip: false,
   },
 
