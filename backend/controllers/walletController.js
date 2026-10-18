@@ -12,30 +12,30 @@ exports.getWallet = async (req, res) => {
 
     let wallet = await Wallet.findOne({ userId: req.user._id });
     if (!wallet) {
-      // Auto-create wallet with ₹99 Welcome Bonus if missing
+      // Auto-create wallet with ₹50 Welcome Bonus if missing
       wallet = await Wallet.create({
         userId: req.user._id,
-        balance: 99,
+        balance: 50,
         recharged: 0,
-        totalEarned: 99,
-        withdrawableBalance: 99,
+        totalEarned: 50,
+        withdrawableBalance: 50,
         totalWithdrawn: 0,
         transactions: [{
           type: 'credit',
-          amount: 99,
-          description: '🎁 Welcome Signup Bonus ₹99',
+          amount: 50,
+          description: '🎁 Welcome Signup Bonus ₹50',
           date: new Date(),
         }],
       });
     } else if (wallet.balance === 0 && (!wallet.transactions || wallet.transactions.length === 0)) {
-      // Ensure existing empty new-user wallets get the ₹99 bonus credited
-      wallet.balance = 99;
-      wallet.totalEarned = 99;
-      wallet.withdrawableBalance = 99;
+      // Ensure existing empty new-user wallets get the ₹50 bonus credited
+      wallet.balance = 50;
+      wallet.totalEarned = 50;
+      wallet.withdrawableBalance = 50;
       wallet.transactions.push({
         type: 'credit',
-        amount: 99,
-        description: '🎁 Welcome Signup Bonus ₹99',
+        amount: 50,
+        description: '🎁 Welcome Signup Bonus ₹50',
         date: new Date(),
       });
       await wallet.save();
@@ -63,8 +63,8 @@ exports.withdraw = async (req, res) => {
     const { amount, bankDetails } = req.body;
     const numAmount = Number(amount);
 
-    if (!numAmount || numAmount < 1500) {
-      return res.status(400).json({ message: 'Minimum withdrawal amount is ₹1,500' });
+    if (!numAmount || numAmount < 1000) {
+      return res.status(400).json({ message: 'Minimum withdrawal amount is ₹1,000' });
     }
 
     if (!bankDetails) {

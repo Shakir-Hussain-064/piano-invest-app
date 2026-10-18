@@ -16,26 +16,26 @@ router.get('/', protect, async (req, res) => {
     if (!wallet) {
       wallet = await Wallet.create({
         userId: req.user._id,
-        balance: 99,
+        balance: 50,
         recharged: 0,
-        totalEarned: 99,
-        withdrawableBalance: 99,
+        totalEarned: 50,
+        withdrawableBalance: 50,
         totalWithdrawn: 0,
         transactions: [{
           type: 'credit',
-          amount: 99,
-          description: '🎁 Welcome Signup Bonus ₹99',
+          amount: 50,
+          description: '🎁 Welcome Signup Bonus ₹50',
           date: new Date(),
         }],
       });
     } else if (wallet.balance === 0 && (!wallet.transactions || wallet.transactions.length === 0)) {
-      wallet.balance = 99;
-      wallet.totalEarned = 99;
-      wallet.withdrawableBalance = 99;
+      wallet.balance = 50;
+      wallet.totalEarned = 50;
+      wallet.withdrawableBalance = 50;
       wallet.transactions.push({
         type: 'credit',
-        amount: 99,
-        description: '🎁 Welcome Signup Bonus ₹99',
+        amount: 50,
+        description: '🎁 Welcome Signup Bonus ₹50',
         date: new Date(),
       });
       await wallet.save();
@@ -45,8 +45,8 @@ router.get('/', protect, async (req, res) => {
 
     res.json({
       user,
-      walletBalance: wallet ? wallet.balance : 99,
-      totalEarned: wallet ? wallet.totalEarned : 99,
+      walletBalance: wallet ? wallet.balance : 50,
+      totalEarned: wallet ? wallet.totalEarned : 50,
       totalWithdrawn: wallet ? wallet.totalWithdrawn : 0,
       activePlansCount: activePlans.length,
       totalInvested,

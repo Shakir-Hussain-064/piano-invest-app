@@ -103,13 +103,13 @@ export default function SignupPage() {
                 Referral Code
               </label>
               <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-                🎁 ₹99 Instant Signup Bonus
+                🎁 ₹50 Instant Signup Bonus
               </span>
             </div>
             <input type="text" name="referralCode" value={form.referralCode} onChange={handleChange}
               placeholder="e.g. REFXXXXXX (optional)"
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 transition text-sm uppercase tracking-wider font-semibold shadow-sm" />
-            <p className="text-[11px] text-slate-400 mt-1 font-medium">New users get instant ₹99 in wallet! Invite friends to earn ₹150 per referral.</p>
+            <p className="text-[11px] text-slate-400 mt-1 font-medium">New users get instant ₹50 in wallet! Invite friends to earn ₹99 per referral.</p>
           </div>
 
           {/* CAPTCHA */}
