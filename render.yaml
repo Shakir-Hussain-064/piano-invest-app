@@ -23,8 +23,8 @@ services:
       - key: CLIENT_URL
         value: "*"
       - key: TELEGRAM_BOT_TOKEN
-        value: 8723665393:AAHbilt8olKbdZrBZfLIMTg2gfQuO6EikeY
+        value: 8627256001:AAHSq_vPyQd5DQj1KYepGPH7UYQ1AKMcNG8
       - key: TELEGRAM_BOT_USERNAME
-        value: SolarWealthBot
+        value: SolarWealthPayBot
       - key: STAR_RATE
         value: 2
