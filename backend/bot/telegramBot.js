@@ -1,8 +1,8 @@
 const StarPayment = require('../models/StarPayment');
 const { PLANS, STAR_RATE, findPlanById, findPlanByAmount } = require('../constants/plans');
 
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8627256001:AAFALX1gy0Smc5Rz4p2Gp0gXSKebFxcURd4';
-const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_API = BOT_TOKEN ? `https://api.telegram.org/bot${BOT_TOKEN}` : '';
 
 // Helper: Call Telegram Bot API
 async function callTelegram(method, data) {
