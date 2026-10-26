@@ -83,6 +83,15 @@ app.use('/api/wallet', walletRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/payment', paymentRoutes);
 
+// Telegram Bot Webhook Route
+try {
+  const { handleWebhookUpdate } = require('./bot/telegramBot');
+  app.post('/api/telegram/webhook', handleWebhookUpdate);
+  console.log('[TELEGRAM] Webhook route registered at /api/telegram/webhook');
+} catch (err) {
+  console.error('[TELEGRAM] Failed to register webhook route:', err.message);
+}
+
 // Keep-alive: self-ping every 10 minutes to prevent Render free tier spin-down
 // This ensures the bot and server stay awake 24/7 even when idle
 const BACKEND_URL = process.env.BACKEND_URL || 'https://piano-invest-app-yvu0.onrender.com';
